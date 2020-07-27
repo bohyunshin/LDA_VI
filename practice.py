@@ -6,16 +6,24 @@ from LDA_VI import LDA_VI
 dir = "preprocessed_review.pickle"
 lda = LDA_VI(dir, 0.1, 0.1, 10)
 lda._make_vocab()
-print(len(lda.w2idx))
-print(len(lda.data))
+print('끝')
+lda._init_params()
+print('초기화끝')
+a = lda._update_Z_dn()
+print(a)
 
-T = 10
-M = len(lda.w2idx)
-D = len(lda.data)
+x = np.array([1,2,3])
+y = np.array([4,5])
+print(np.add.outer(x,y))
 
-beta_star = np.ones((M,T)) / T
-alpha_star = np.ones((D,T)) / T
-psi_star = [ [np.ones((d,n)) for d in range(D) for n in lda.doc2idx[d]] for _ in range(T) ]
+
+# T = 10
+# M = len(lda.w2idx)
+# D = len(lda.data)
+#
+# beta_star = np.ones((M,T)) / T
+# alpha_star = np.ones((D,T)) / T
+# psi_star = [ [np.ones((d,n)) for d in range(D) for n in lda.doc2idx[d]] for _ in range(T) ]
 
 # self.psi_star = np.ones((self.T, self.M, self.D)) / self.T  # dimension: T*= * M * D
 # self.beta_star = np.ones((self.M, self.T)) / self.T  # dimension: M * T

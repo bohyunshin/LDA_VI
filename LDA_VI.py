@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.special import polygamma
 import pickle
+from numpy import exp
 import time
 
 # define free variational parameters
@@ -29,12 +30,19 @@ class LDA_VI:
         self.Nd = [len(doc) for doc in self.data]
 
     def _init_params(self):
+        '''
+        Initialize parameters for LDA
+        This is variational free parameters each endowed to
+        Z_dn: psi_star
+        theta_d: alpha_star
+        phi_t : beta_star
+        '''
         self.M = len(self.w2idx)
         self.D = len(self.data)
         self.Nd = [len(doc) for doc in self.data]
 
         # set initial value for free variational parameters
-        self.psi_star = np.ones((self.T , self.M , self.D))/self.T # dimension: T*= * M * D
+        self.psi_star = [ np.ones((Nd, self.T))/self.T for Nd in self.Nd ] # dimension: for topic d, Nd * T
         self.beta_star = np.ones((self.M, self.T))/self.T # dimension: M * T
         self.alpha_star = np.ones((self.D , self.T))/self.T # dimension: D * T
 
@@ -50,8 +58,11 @@ class LDA_VI:
         return None
 
     def _E_dir(self, params):
-        # univariate implementation
-        return polygamma(1, params) - polygamma(sum(params))
+        '''
+        input: vector parameters of dirichlet
+        output: Expecation of dirichlet - also vector
+        '''
+        return polygamma(1, params) - polygamma(1, sum(params))
 
     def _indicator(self, x,y):
         if x == y:
@@ -61,18 +72,37 @@ class LDA_VI:
 
     def _update_Z_dn(self):
         # for topic t, the sum of probability should be one
+        start = time.time()
+        a = 0
         for d in range(self.D):
-            for n in self.Nd[d]:
-                for m in range(self.M):
-                    prob = []
-                    for t in range(self.T):
-                        val = self._indicator(n, m) * self._E_dir(self.beta_star[m,t])
-                        + self.E_dir(self.alpha_star[d,t])
-                        prob.append(val)
-                    # normalized prob
-                    prob /= sum(prob)
-                    # store to variational Z_dn
-                    self.psi_star[:,m,d] = prob
+            # for i in range(self.Nd[d]): # for word in dth document
+            prob_t = []
+            Nd_index = np.array(self.doc2idx[d])
+            # get the proportional value in each topic t,
+            # and then normalize to make as probabilities
+            # the indicator of Z_dn remains only one term
+
+
+            for t in range(self.T):
+                phi_sum = sum( self._E_dir(self.beta_star[Nd_index,t]) )
+                theta_sum =  self._E_dir(self.alpha_star[d,:])[t]
+                self.psi_star[d][:, t] = phi_sum + theta_sum
+            # to prevent overfloat
+            self.psi_star[d] -= self.psi_star[d].min(axis=1)[:,None]
+            self.psi_star[d] = exp(self.psi_star[d])
+            self.psi_star[d] /= np.sum(self.psi_star[d], axis=1)[:,None]
+            # normalized prob
+
+            # store update psi
+            # dimension of psi: Nd * T
+            # Note that row index does not correspond to N, but i.
+            # self.psi_star[d][i,:] = prob
+            a += 1
+
+            if a % 100 == 0:
+                print(a)
+                print(self.psi_star[d][0,:])
+        print(f'q(Z) update하는데 걸린 시간은 {(time.time() - start)/60}')
 
 
     def _update_phi_t(self):
