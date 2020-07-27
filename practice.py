@@ -9,13 +9,8 @@ lda._make_vocab()
 print('끝')
 lda._init_params()
 print('초기화끝')
-a = lda._update_Z_dn()
-print(a)
-
-x = np.array([1,2,3])
-y = np.array([4,5])
-print(np.add.outer(x,y))
-
+a = lda._update_theta_d()
+print(lda.alpha_star)
 
 # T = 10
 # M = len(lda.w2idx)

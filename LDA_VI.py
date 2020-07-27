@@ -87,47 +87,49 @@ class LDA_VI:
                 phi_sum = sum( self._E_dir(self.beta_star[Nd_index,t]) )
                 theta_sum =  self._E_dir(self.alpha_star[d,:])[t]
                 self.psi_star[d][:, t] = phi_sum + theta_sum
+            ## vectorize to reduce time
             # to prevent overfloat
             self.psi_star[d] -= self.psi_star[d].min(axis=1)[:,None]
             self.psi_star[d] = exp(self.psi_star[d])
+            # normalize prob
             self.psi_star[d] /= np.sum(self.psi_star[d], axis=1)[:,None]
-            # normalized prob
 
             # store update psi
             # dimension of psi: Nd * T
-            # Note that row index does not correspond to N, but i.
-            # self.psi_star[d][i,:] = prob
-            a += 1
-
-            if a % 100 == 0:
-                print(a)
-                print(self.psi_star[d][0,:])
         print(f'q(Z) update하는데 걸린 시간은 {(time.time() - start)/60}')
+
+    def _get_psi_tdn(self,t,d,n):
+        '''
+        <input>
+        t: topic index
+        d: document index
+        n: word index. Note that this is in the whole corpus.
+        <output>
+        prob for nth word in dth doc be the topic t, i.e., P(psi_tdn = t)
+        '''
+        word_in_doc_index = self.doc2idx[d].index(n)
+        return self.psi_star[d][word_in_doc_index, t]
+
+
 
 
     def _update_phi_t(self):
         for t in range(self.T):
-            _gamma = []
-            for m in range(self.M):
-                _sum = 0
-                for d in range(self.D):
-                    for n in self.Nd[d]:
-                        _sum += self._indicator(n,m) * self.psi_star[t,n,d]
-                _sum += self.beta
-                _gamma.append(_sum)
-            self.beta_star[:,t] = _gamma
+            beta = np.repeat(self.beta, self.M)
+            a = 0
+            for d, doc in enumerate(self.doc2idx):
+                idx = np.array(list(doc))
+                for n in idx:
+                    beta[n] += self._get_psi_tdn(t, d, n)
+
+            self.beta_star[:,t] = beta
+            print(f'{t}번째 주제 완료!')
 
 
     def _update_theta_d(self):
         for d in range(self.D):
-            _eta = []
-            for t in tange(self.T):
-                _sum = 0
-                for n in self.Nd[d]:
-                    _sum += self.psi_star[t,n,d]
-                _sum += self.alpha
-                _eta.append(_sum)
-            self.alpha_star[d,:] = _eta
+            beta_star_dt = np.sum(self.psi_star[d], axis=0) + self.alpha
+            self.alpha_star[d,:] = beta_star_dt
 
 
     def _coordinate_VI_LDA(self, max_iter, threshold):
@@ -137,6 +139,7 @@ class LDA_VI:
         print('Done!')
         print(f'# of Documents: {self.D}')
         print(f'# of unique vocabs: {self.M}')
+        print(f'{T} topics chosen')
 
         print('Initializing Parms...')
         self._init_params()
