@@ -1,16 +1,26 @@
 import numpy as np
+from numpy import exp, log
+from scipy.special import gamma, polygamma
 import pickle
 import time
 from LDA_VI import LDA_VI
 
 dir = "preprocessed_review.pickle"
 lda = LDA_VI(dir, 0.1, 0.1, 10)
-lda._make_vocab()
-print('끝')
-lda._init_params()
-print('초기화끝')
-a = lda._update_theta_d()
-print(lda.alpha_star)
+# lda._make_vocab()
+# print('끝')
+# lda._init_params()
+# print('초기화끝')
+# print(lda.alpha_star)
+# lda._update_theta_d()
+# lda._update_phi_t()
+# lda._update_theta_d()
+lda.train(0.1)
+print(lda._ELBO_history)
+
+
+
+
 
 # T = 10
 # M = len(lda.w2idx)
