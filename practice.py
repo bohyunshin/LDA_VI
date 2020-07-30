@@ -1,44 +1,18 @@
 import numpy as np
+import pandas as pd
 from numpy import exp, log
-from scipy.special import gamma, polygamma
+from scipy.special import gamma, digamma, polygamma
 import pickle
 import time
 from LDA_VI import LDA_VI
 
-dir = "preprocessed_review.pickle"
-lda = LDA_VI(dir, 0.1, 0.1, 10)
-# lda._make_vocab()
-# print('끝')
-# lda._init_params()
-# print('초기화끝')
-# print(lda.alpha_star)
-# lda._update_theta_d()
-# lda._update_phi_t()
-# lda._update_theta_d()
-lda.train(0.1)
+dir = "/Users/shinbo/Desktop/metting/LDA/0. data/20news-bydate/newsgroup_preprocessed.pickle"
+lda = LDA_VI(dir, 5, 0.1, 10)
+
+
+lda.train(0.00001)
 print(lda._ELBO_history)
-
-
-
-
-
-# T = 10
-# M = len(lda.w2idx)
-# D = len(lda.data)
-#
-# beta_star = np.ones((M,T)) / T
-# alpha_star = np.ones((D,T)) / T
-# psi_star = [ [np.ones((d,n)) for d in range(D) for n in lda.doc2idx[d]] for _ in range(T) ]
-
-# self.psi_star = np.ones((self.T, self.M, self.D)) / self.T  # dimension: T*= * M * D
-# self.beta_star = np.ones((self.M, self.T)) / self.T  # dimension: M * T
-# self.alpha_star = np.ones((self.D, self.T)) / self.T  # dimension: D * T
-
-
-# lda._init_params()
-# print('done')
-#
-# start = time.time()
-# lda._update_Z_dn()
-# print((time.time() - start) / 60)
+pd.DataFrame(lda.psi_star[0]).to_csv('psi_star.csv', index=False)
+pd.DataFrame(lda.alpha_star).to_csv('alpha_star.csv', index=False)
+pd.DataFrame(lda.beta_star).to_csv('beta_star.csv', index=False)
 
