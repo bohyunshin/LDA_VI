@@ -3,6 +3,7 @@ from scipy.special import digamma, gamma, polygamma
 import pickle
 from numpy import exp, log
 import time
+from collections import Counter
 
 # define free variational parameters
 K = 50
@@ -42,6 +43,7 @@ class LDA_VI:
         self.D = len(self.data)
         self.Nd = [len(doc) for doc in self.data]
 
+
         # set initial value for free variational parameters
         self.psi_star = [ np.ones((Nd, self.T))/self.T for Nd in self.Nd ] # dimension: for topic d, Nd * T
 
@@ -50,6 +52,16 @@ class LDA_VI:
         self.beta_star = np.random.gamma(100, 1/100, (self.M, self.T)) # dimension: M * T
         np.random.seed(2)
         self.alpha_star = np.random.gamma(100, 1/100, (self.D, self.T)) # dimension: D * T
+
+        # initialize dirichlet expectation to reduce computation time
+        self.beta_star_E = np.zeros((self.M, self.T))
+        self.alpha_star_E = np.zeros((self.D, self.T))
+
+        print('calculating initial dirichlet expectation...')
+        for t in range(self.T):
+            self.beta_star_E[:,t] = self._E_dir(self.beta_star[:,t])
+        for d in range(self.D):
+            self.alpha_star_E[d,:] = self._E_dir(self.alpha_star[d,:])
 
         # self.alpha_star = np.zeros(self.T)
         # for d in range(self.D):
@@ -78,14 +90,20 @@ class LDA_VI:
         for d in range(self.D):
             # update term1
             idx = np.array(self.doc2idx[d])
-            tmp = self.beta_star[idx,:]
+
+
+            # update dirichlet expectation of beta_star
             for t in range(self.T):
-                tmp[:,t] = self._E_dir(tmp[:,t])
-            tmp = self.psi_star[d] * tmp
+                self.beta_star_E[:,t] = self._E_dir(self.beta_star[:,t])
+
+
+            tmp = self.psi_star[d] * self.beta_star_E[idx,:] # Nd * T product Nd * T
             term1 += tmp.sum()
 
             # update term2
-            tmp2 = self._E_dir(self.alpha_star[d,:]) # T dimensional
+            # update dirichlet expectation of alpha_star
+            self.alpha_star_E[d, :] = self._E_dir(self.alpha_star[d, :])
+            tmp2 = self.alpha_star_E[d, :] # T dimensional
             term2 += (self.psi_star[d] * tmp2[None,:]).sum()
 
             # update term5
@@ -98,14 +116,15 @@ class LDA_VI:
         # update term3, 6
         for t in range(self.T):
             # update term3
-            term3 += self._E_dir(self.beta_star[:, t]).sum()
+            term3 += self.beta_star_E[:, t].sum()
 
             # update term6
             logB = self._logB(self.beta_star[:, t]).sum()  # log ( dirichlet multiplicative factor)
 
+            # to prevent float error
             if np.isnan(logB):
                 logB = 0
-            val = (self.beta_star[:,t] - 1) * self._E_dir(self.beta_star[:, t])
+            val = (self.beta_star[:,t] - 1) * self.beta_star_E[:, t]
             term6 += val.sum() + logB
         term3 *= self.beta - 1
         print('Done term 3,6')
@@ -114,17 +133,16 @@ class LDA_VI:
         # update term 4, 7
         for d in range(self.D):
             # update term4
-            term4 += self._E_dir(self.alpha_star[d,:]).sum()
+            term4 += self.alpha_star_E[d,:].sum()
 
             # update term7
             logB = self._logB(self.alpha_star[d,:]).sum()  # log ( dirichlet multiplicative factor)
             if np.isnan(logB):
                 logB = 0
-            val = (self.alpha_star[d,:]-1) * self._E_dir(self.alpha_star[d,:])
-            tmp = val.sum()
+            val = (self.alpha_star[d,:]-1) * self.alpha_star_E[d,:]
             term7 += val.sum() + logB
-
         term4 *= self.alpha - 1
+
         print('Done term 4, 7')
         print(f'term4: {term4}, term7: {term7}')
 
@@ -152,8 +170,8 @@ class LDA_VI:
 
 
         for t in range(self.T):
-            phi_sum = self._E_dir(self.beta_star[:,t])[Nd_index] # Nd * 1
-            theta_sum =  self._E_dir(self.alpha_star[d,:])[t] # scalar
+            phi_sum = self.beta_star_E[:,t][Nd_index] # Nd * 1: indexing for words in dth document
+            theta_sum = self.alpha_star_E[d,:][t] # scalar: indexing for t th topic
             self.psi_star[d][:, t] = phi_sum + theta_sum # Nd * 1
         ## vectorize to reduce time
         # to prevent overfloat
@@ -187,7 +205,8 @@ class LDA_VI:
             a = 0
             for d, doc in enumerate(self.doc2idx):
                 idx = np.array(list(doc))
-                beta[idx] += self.psi_star[d][:,t].sum()
+                beta[idx] += self.psi_star[d][:,t]
+            print(f'{t} topic finished')
 
             self.beta_star[:,t] = beta
 
