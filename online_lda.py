@@ -1,15 +1,15 @@
 import numpy as np
-from scipy.special import digamma, gamma, polygamma
-import pickle
 from numpy import exp, log
-import time
+from scipy.special import digamma, gamma, polygamma
 from collections import Counter, OrderedDict
+import pickle
+import time
+from _online_lda_fast import _dirichlet_expectation_2d, _dirichlet_expectation_1d_
 
-dir = 'preprocessed_review.pickle'
 class LDA_VI:
     def __init__(self, path_data, alpha, eta,  K):
         # loading data
-        self.data = pickle.load(open(path_data, 'rb'))[:1000]
+        self.data = pickle.load(open(path_data, 'rb'))
         self.alpha = alpha # hyperparameter; dimension: T * 1 but assume symmetric prior
         self.eta = eta  # hyperparameter; dimension: M * 1 but assume symmetric prior
         self.K = K
@@ -47,14 +47,9 @@ class LDA_VI:
         self.gam = np.random.gamma(100, 1/100, (self.D, self.K)) # dimension: D * K
 
         # initialize dirichlet expectation to reduce computation time
-        self.lam_E = np.zeros((self.V, self.K))
-        self.gam_E = np.zeros((self.D, self.K))
+        self._update_lam_E_dir()
+        self._update_gam_E_dir()
 
-        print('calculating initial dirichlet expectation...')
-        for k in range(self.K):
-            self.lam_E[:,k] = self._E_dir(self.lam[:,k])
-        for d in range(self.D):
-            self.gam_E[d,:] = self._E_dir(self.gam[d,:])
 
         # self.alpha_star = np.zeros(self.T)
         # for d in range(self.D):
@@ -79,12 +74,8 @@ class LDA_VI:
         ELBO = term1 + term2 + term3 + term4 - term5 - term6 - term7
         '''
 
-        # update term1, 2, 5
+        # update term 1, 2, 3, 4, 5
         for d in range(self.D):
-            # update dirichlet expectation of beta_star
-            for k in range(self.K):
-                self.lam_E[:,k] = self._E_dir(self.lam[:,k])
-
 
             ndw = np.array(list(self.Ndw[d].keys()))
             for k in range(self.K):
@@ -95,13 +86,15 @@ class LDA_VI:
                 term1 += (tmp * ndw_vec).sum()
 
                 # update term 2
-                ndw_vec * self.phi[:,k] # V * 1
-                theta_dk = self.gam_E[d,k] # scalar
-                term2 += (theta_dk * ndw_vec).sum() # V * 1
+                tmp = (ndw_vec * self.phi[:,k]).sum() # sum of V * 1 numpy arrays: scalar
+                E_theta_dk = self.gam_E[d,k] # scalar
+                term2 += E_theta_dk * tmp # scalar * scalar = scalar
 
                 # update term 3
                 tmp = self.phi[:,k] * log(self.phi[:,k] + 0.000000001)
                 term3 += (tmp * ndw_vec).sum()
+
+
 
 
             # update term 4
@@ -112,33 +105,39 @@ class LDA_VI:
             term5 += digamma(sum(self.gam[d,:])) - sum(digamma(self.gam[d,:]))
             term5 += ( (self.gam[d,:]-1) * self.gam_E[d,:] ).sum()
 
+        print('Done term 1 ~ 5')
+
 
         for k in range(self.K):
             # update term 6
             term6 += digamma(self.V * self.eta) - log(self.V * gamma(self.eta))
-            term6 += ( (self.eta-1) * self.lam[:,k] ).sum()
+            term6 +=  (self.eta-1) * self.lam_E[:,k].sum()
 
             # update term 7
             term7 += digamma(sum( self.lam[:,k] )) - sum( digamma(self.lam[:,k]) )
             term7 += ( ( self.lam[:,k]-1 ) * ( self.lam_E[:,k] ) ).sum()
+        print('Done term 6, 7')
 
         return term1 + term2 - term3 + term4 - term5 + term6 - term7
 
-    def _E_dir(self, params):
+    def _E_dir(self, params_mat):
         '''
         input: vector parameters of dirichlet
         output: Expecation of dirichlet - also vector
         '''
-        return polygamma(1,params) - polygamma(1,sum(params))
+        return _dirichlet_expectation_2d(params_mat)
 
-    def _logB(self, params):
-        # log of dirichlet multiplicative factor
-        return digamma(params) - digamma(sum(params))
+    def _E_dir_1d(self, params):
+        return _dirichlet_expectation_1d_(params)
+
+    def _update_gam_E_dir(self):
+        self.gam_E = self._E_dir(self.gam.transpose()).transpose()
+
+    def _update_lam_E_dir(self):
+        self.lam_E = self._E_dir(self.lam.transpose()).transpose()
+
 
     def _update_phi(self, d):
-        # for topic t, the sum of probability should be one
-        start = time.time()
-
         # duplicated words are ignored
         Nd_index = np.array(list(set(self.doc2idx[d])))
         # get the proportional value in each topic t,
@@ -147,23 +146,25 @@ class LDA_VI:
 
 
         for k in range(self.K):
-            E_beta = self.lam_E[:,k][Nd_index] # Nd * 1: indexing for words in dth document
-            E_theta = self.gam_E[d,:][k] # scalar: indexing for kth topic
+            E_beta = self.lam_E[Nd_index,k] # Nd * 1: indexing for words in dth document
+            E_theta = self.gam_E[d,k] # scalar: indexing for kth topic
             self.phi[Nd_index,k] = E_beta + E_theta # Nd * 1
         ## vectorize to reduce time
         # to prevent overfloat
-        self.phi -= self.phi.min(axis=1)[:,None]
-        self.phi = exp(self.phi)
+        #self.phi -= self.phi.min(axis=1)[:,None]
+        self.phi[Nd_index,:] = exp(self.phi[Nd_index,:])
         # normalize prob
-        self.phi /= np.sum(self.phi, axis=1)[:,None]
+        self.phi[Nd_index,:] /= np.sum(self.phi[Nd_index,:], axis=1)[:,None]
+        1+1
         # print(None)
 
     def _update_gam(self,d):
         tmp = self.Ndw[d]
-        gam_dk = np.repeat(self.alpha, self.K)
+        gam_d = np.repeat(self.alpha, self.K)
         for w in self.doc2idx[d]:
-            gam_dk = gam_dk +  tmp[w] * self.phi[w,:] # K * 1 dimension
-        self.gam[d,:] = gam_dk
+            gam_d = gam_d +  tmp[w] * self.phi[w,:] # K * 1 dimension
+        self.gam[d,:] = gam_d
+        self.gam_E[d, :] = self._E_dir_1d(self.gam[d, :])
 
 
     def _update_lam(self):
@@ -173,24 +174,13 @@ class LDA_VI:
                 for w in doc:
                     lam_kw = self.Ndw[d][w] * self.phi[w,k]
                     lam_k[w] += lam_kw
-            print(f'{k} topic finished')
+            self.lam[:,k] = lam_k
+
+        # update lambda dirichlet expectation
+        self._update_lam_E_dir()
 
 
     def train(self, threshold):
-
-        '''
-        Variational inference using coordinate descent approach
-        <Pseudo Code>
-        while relative increase in ELBO_d > threshold:
-            for each document in corpus:
-                repeat relative increase in alpha_star > threshold
-                    for each word in document:
-                        for each topic:
-                            update variational parameters of Z_dn: psi_star
-                            update variational parameters of theta_d: alpha_star
-            update variational parameters of phi_t
-            calculate ELBO
-        '''
 
         print('Making Vocabs...')
         self._make_vocab()
@@ -206,8 +196,6 @@ class LDA_VI:
         ELBO_before = 0
         ELBO_after = 99999
         self._ELBO_history = []
-        self._ELBO_history.append(ELBO_before)
-
 
         print('##################### start training #####################')
         while abs(ELBO_after - ELBO_before) > threshold:
@@ -215,9 +203,12 @@ class LDA_VI:
             ELBO_before = ELBO_after
             print('\n')
 
-            print('E step: start optimizing alpha_star...')
-            # update psi_star, alpha_star
+            print('E step: start optimizing phi, gamma...')
+            self.gam = np.ones((self.D, self.K))
+            self._update_gam_E_dir()
+
             for d in range(self.D):
+
                 gam_before = self.gam[d,:]
                 gam_after = np.repeat(999,self.K)
                 while sum(abs(gam_before - gam_after)) / self.K > threshold:
@@ -227,9 +218,9 @@ class LDA_VI:
                     gam_after = self.gam[d,:]
 
             # update beta_star
-            print('M step: Updating Beta..')
+            print('M step: Updating lambda..')
             self._update_lam()
-            print('Finished Inference!')
+            print('Finished Iteration!')
             print('\n')
 
             print('Now calculating ELBO...')

@@ -3,13 +3,20 @@
 /* BEGIN: Cython Metadata
 {
     "distutils": {
-        "depends": [],
-        "name": "vytest",
+        "depends": [
+            "/Users/shinbo/opt/anaconda3/lib/python3.7/site-packages/numpy/core/include/numpy/arrayobject.h",
+            "/Users/shinbo/opt/anaconda3/lib/python3.7/site-packages/numpy/core/include/numpy/npy_math.h",
+            "/Users/shinbo/opt/anaconda3/lib/python3.7/site-packages/numpy/core/include/numpy/ufuncobject.h"
+        ],
+        "include_dirs": [
+            "/Users/shinbo/opt/anaconda3/lib/python3.7/site-packages/numpy/core/include"
+        ],
+        "name": "_online_lda_fast",
         "sources": [
-            "vytest.pyx"
+            "_online_lda_fast.pyx"
         ]
     },
-    "module_name": "vytest"
+    "module_name": "_online_lda_fast"
 }
 END: Cython Metadata */
 
@@ -603,8 +610,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__vytest
-#define __PYX_HAVE_API__vytest
+#define __PYX_HAVE___online_lda_fast
+#define __PYX_HAVE_API___online_lda_fast
 /* Early includes */
 #include <string.h>
 #include <stdio.h>
@@ -842,7 +849,7 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "vytest.pyx",
+  "_online_lda_fast.pyx",
   "__init__.pxd",
   "type.pxd",
 };
@@ -1246,6 +1253,9 @@ static void __Pyx_ZeroBuffer(Py_buffer* buf);
 static CYTHON_INLINE void __Pyx_SafeReleaseBuffer(Py_buffer* info);
 static Py_ssize_t __Pyx_minusones[] = { -1, -1, -1, -1, -1, -1, -1, -1 };
 static Py_ssize_t __Pyx_zeros[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
+/* BufferIndexError.proto */
+static void __Pyx_RaiseBufferIndexError(int axis);
 
 #define __Pyx_BufPtrStrided1d(type, buf, i0, s0) (type)((char*)buf + i0 * s0)
 /* PyThreadStateGet.proto */
@@ -1679,15 +1689,16 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void); /*proto*/
 
 /* Module declarations from 'numpy.math' */
 
-/* Module declarations from 'vytest' */
-static double __pyx_f_6vytest_psi(double); /*proto*/
+/* Module declarations from '_online_lda_fast' */
+static double __pyx_f_16_online_lda_fast_psi(double); /*proto*/
 static __Pyx_TypeInfo __Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t = { "float64_t", NULL, sizeof(__pyx_t_5numpy_float64_t), { 0 }, 0, 'R', 0, 0 };
-#define __Pyx_MODULE_NAME "vytest"
-extern int __pyx_module_is_main_vytest;
-int __pyx_module_is_main_vytest = 0;
+#define __Pyx_MODULE_NAME "_online_lda_fast"
+extern int __pyx_module_is_main__online_lda_fast;
+int __pyx_module_is_main__online_lda_fast = 0;
 
-/* Implementation of 'vytest' */
+/* Implementation of '_online_lda_fast' */
 static PyObject *__pyx_builtin_range;
+static PyObject *__pyx_builtin_sum;
 static PyObject *__pyx_builtin_ValueError;
 static PyObject *__pyx_builtin_RuntimeError;
 static PyObject *__pyx_builtin_ImportError;
@@ -1697,6 +1708,7 @@ static const char __pyx_k_dt[] = "dt";
 static const char __pyx_k_np[] = "np";
 static const char __pyx_k_arr[] = "arr";
 static const char __pyx_k_out[] = "out";
+static const char __pyx_k_sum[] = "sum";
 static const char __pyx_k_diff[] = "diff";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_name[] = "__name__";
@@ -1705,27 +1717,31 @@ static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_arr_1[] = "arr_1";
 static const char __pyx_k_arr_2[] = "arr_2";
 static const char __pyx_k_d_exp[] = "d_exp";
+static const char __pyx_k_dtype[] = "dtype";
 static const char __pyx_k_numpy[] = "numpy";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_total[] = "total";
+static const char __pyx_k_zeros[] = "zeros";
 static const char __pyx_k_import[] = "__import__";
 static const char __pyx_k_n_cols[] = "n_cols";
 static const char __pyx_k_n_rows[] = "n_rows";
-static const char __pyx_k_vytest[] = "vytest";
+static const char __pyx_k_float64[] = "float64";
 static const char __pyx_k_doc_topic[] = "doc_topic";
 static const char __pyx_k_psi_total[] = "psi_total";
 static const char __pyx_k_row_total[] = "row_total";
 static const char __pyx_k_ValueError[] = "ValueError";
 static const char __pyx_k_empty_like[] = "empty_like";
-static const char __pyx_k_vytest_pyx[] = "vytest.pyx";
 static const char __pyx_k_ImportError[] = "ImportError";
 static const char __pyx_k_mean_change[] = "mean_change";
 static const char __pyx_k_RuntimeError[] = "RuntimeError";
 static const char __pyx_k_psi_row_total[] = "psi_row_total";
 static const char __pyx_k_doc_topic_prior[] = "doc_topic_prior";
+static const char __pyx_k_online_lda_fast[] = "_online_lda_fast";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
+static const char __pyx_k_online_lda_fast_pyx[] = "_online_lda_fast.pyx";
 static const char __pyx_k_dirichlet_expectation_1d[] = "_dirichlet_expectation_1d";
 static const char __pyx_k_dirichlet_expectation_2d[] = "_dirichlet_expectation_2d";
+static const char __pyx_k_dirichlet_expectation_1d_2[] = "_dirichlet_expectation_1d_";
 static const char __pyx_k_ndarray_is_not_C_contiguous[] = "ndarray is not C contiguous";
 static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multiarray failed to import";
 static const char __pyx_k_unknown_dtype_code_in_numpy_pxd[] = "unknown dtype code in numpy.pxd (%d)";
@@ -1747,11 +1763,14 @@ static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_n_s_d_exp;
 static PyObject *__pyx_n_s_diff;
 static PyObject *__pyx_n_s_dirichlet_expectation_1d;
+static PyObject *__pyx_n_s_dirichlet_expectation_1d_2;
 static PyObject *__pyx_n_s_dirichlet_expectation_2d;
 static PyObject *__pyx_n_s_doc_topic;
 static PyObject *__pyx_n_s_doc_topic_prior;
 static PyObject *__pyx_n_s_dt;
+static PyObject *__pyx_n_s_dtype;
 static PyObject *__pyx_n_s_empty_like;
+static PyObject *__pyx_n_s_float64;
 static PyObject *__pyx_n_s_i;
 static PyObject *__pyx_n_s_import;
 static PyObject *__pyx_n_s_j;
@@ -1766,20 +1785,23 @@ static PyObject *__pyx_n_s_np;
 static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_kp_s_numpy_core_multiarray_failed_to;
 static PyObject *__pyx_kp_s_numpy_core_umath_failed_to_impor;
+static PyObject *__pyx_n_s_online_lda_fast;
+static PyObject *__pyx_kp_s_online_lda_fast_pyx;
 static PyObject *__pyx_n_s_out;
 static PyObject *__pyx_n_s_psi_row_total;
 static PyObject *__pyx_n_s_psi_total;
 static PyObject *__pyx_n_s_range;
 static PyObject *__pyx_n_s_row_total;
 static PyObject *__pyx_n_s_size;
+static PyObject *__pyx_n_s_sum;
 static PyObject *__pyx_n_s_test;
 static PyObject *__pyx_n_s_total;
 static PyObject *__pyx_kp_u_unknown_dtype_code_in_numpy_pxd;
-static PyObject *__pyx_n_s_vytest;
-static PyObject *__pyx_kp_s_vytest_pyx;
-static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_arr_1, PyArrayObject *__pyx_v_arr_2); /* proto */
-static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_doc_topic, double __pyx_v_doc_topic_prior, PyArrayObject *__pyx_v_out); /* proto */
-static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_arr); /* proto */
+static PyObject *__pyx_n_s_zeros;
+static PyObject *__pyx_pf_16_online_lda_fast_mean_change(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_arr_1, PyArrayObject *__pyx_v_arr_2); /* proto */
+static PyObject *__pyx_pf_16_online_lda_fast_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_doc_topic, double __pyx_v_doc_topic_prior, PyArrayObject *__pyx_v_out); /* proto */
+static PyObject *__pyx_pf_16_online_lda_fast_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_arr); /* proto */
+static PyObject *__pyx_pf_16_online_lda_fast_6_dirichlet_expectation_1d_(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_arr); /* proto */
 static int __pyx_pf_5numpy_7ndarray___getbuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info, int __pyx_v_flags); /* proto */
 static void __pyx_pf_5numpy_7ndarray_2__releasebuffer__(PyArrayObject *__pyx_v_self, Py_buffer *__pyx_v_info); /* proto */
 static PyObject *__pyx_tuple_;
@@ -1792,12 +1814,14 @@ static PyObject *__pyx_tuple__7;
 static PyObject *__pyx_tuple__8;
 static PyObject *__pyx_tuple__10;
 static PyObject *__pyx_tuple__12;
+static PyObject *__pyx_tuple__14;
 static PyObject *__pyx_codeobj__9;
 static PyObject *__pyx_codeobj__11;
 static PyObject *__pyx_codeobj__13;
+static PyObject *__pyx_codeobj__15;
 /* Late includes */
 
-/* "vytest.pyx":14
+/* "_online_lda_fast.pyx":11
  * 
  * 
  * def mean_change(np.ndarray[ndim=1, dtype=np.float64_t] arr_1,             # <<<<<<<<<<<<<<
@@ -1806,10 +1830,10 @@ static PyObject *__pyx_codeobj__13;
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6vytest_1mean_change(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_6vytest_mean_change[] = "Calculate the mean difference between two arrays.\n    Equivalent to np.abs(arr_1 - arr2).mean().\n    ";
-static PyMethodDef __pyx_mdef_6vytest_1mean_change = {"mean_change", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6vytest_1mean_change, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6vytest_mean_change};
-static PyObject *__pyx_pw_6vytest_1mean_change(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_16_online_lda_fast_1mean_change(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_16_online_lda_fast_mean_change[] = "Calculate the mean difference between two arrays.\n    Equivalent to np.abs(arr_1 - arr2).mean().\n    ";
+static PyMethodDef __pyx_mdef_16_online_lda_fast_1mean_change = {"mean_change", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_16_online_lda_fast_1mean_change, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16_online_lda_fast_mean_change};
+static PyObject *__pyx_pw_16_online_lda_fast_1mean_change(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_arr_1 = 0;
   PyArrayObject *__pyx_v_arr_2 = 0;
   PyObject *__pyx_r = 0;
@@ -1838,11 +1862,11 @@ static PyObject *__pyx_pw_6vytest_1mean_change(PyObject *__pyx_self, PyObject *_
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_arr_2)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("mean_change", 1, 2, 2, 1); __PYX_ERR(0, 14, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("mean_change", 1, 2, 2, 1); __PYX_ERR(0, 11, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "mean_change") < 0)) __PYX_ERR(0, 14, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "mean_change") < 0)) __PYX_ERR(0, 11, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -1855,15 +1879,15 @@ static PyObject *__pyx_pw_6vytest_1mean_change(PyObject *__pyx_self, PyObject *_
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("mean_change", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 14, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("mean_change", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 11, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("vytest.mean_change", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("_online_lda_fast.mean_change", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_arr_1), __pyx_ptype_5numpy_ndarray, 1, "arr_1", 0))) __PYX_ERR(0, 14, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_arr_2), __pyx_ptype_5numpy_ndarray, 1, "arr_2", 0))) __PYX_ERR(0, 15, __pyx_L1_error)
-  __pyx_r = __pyx_pf_6vytest_mean_change(__pyx_self, __pyx_v_arr_1, __pyx_v_arr_2);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_arr_1), __pyx_ptype_5numpy_ndarray, 1, "arr_1", 0))) __PYX_ERR(0, 11, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_arr_2), __pyx_ptype_5numpy_ndarray, 1, "arr_2", 0))) __PYX_ERR(0, 12, __pyx_L1_error)
+  __pyx_r = __pyx_pf_16_online_lda_fast_mean_change(__pyx_self, __pyx_v_arr_1, __pyx_v_arr_2);
 
   /* function exit code */
   goto __pyx_L0;
@@ -1874,7 +1898,7 @@ static PyObject *__pyx_pw_6vytest_1mean_change(PyObject *__pyx_self, PyObject *_
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_arr_1, PyArrayObject *__pyx_v_arr_2) {
+static PyObject *__pyx_pf_16_online_lda_fast_mean_change(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_arr_1, PyArrayObject *__pyx_v_arr_2) {
   __pyx_t_5numpy_float64_t __pyx_v_total;
   __pyx_t_5numpy_float64_t __pyx_v_diff;
   npy_intp __pyx_v_i;
@@ -1889,8 +1913,9 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
   npy_intp __pyx_t_2;
   npy_intp __pyx_t_3;
   Py_ssize_t __pyx_t_4;
-  Py_ssize_t __pyx_t_5;
-  PyObject *__pyx_t_6 = NULL;
+  int __pyx_t_5;
+  Py_ssize_t __pyx_t_6;
+  PyObject *__pyx_t_7 = NULL;
   __Pyx_RefNannySetupContext("mean_change", 0);
   __pyx_pybuffer_arr_1.pybuffer.buf = NULL;
   __pyx_pybuffer_arr_1.refcount = 0;
@@ -1902,16 +1927,16 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
   __pyx_pybuffernd_arr_2.rcbuffer = &__pyx_pybuffer_arr_2;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_arr_1.rcbuffer->pybuffer, (PyObject*)__pyx_v_arr_1, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 14, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_arr_1.rcbuffer->pybuffer, (PyObject*)__pyx_v_arr_1, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 11, __pyx_L1_error)
   }
   __pyx_pybuffernd_arr_1.diminfo[0].strides = __pyx_pybuffernd_arr_1.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_arr_1.diminfo[0].shape = __pyx_pybuffernd_arr_1.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_arr_2.rcbuffer->pybuffer, (PyObject*)__pyx_v_arr_2, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 14, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_arr_2.rcbuffer->pybuffer, (PyObject*)__pyx_v_arr_2, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 11, __pyx_L1_error)
   }
   __pyx_pybuffernd_arr_2.diminfo[0].strides = __pyx_pybuffernd_arr_2.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_arr_2.diminfo[0].shape = __pyx_pybuffernd_arr_2.rcbuffer->pybuffer.shape[0];
 
-  /* "vytest.pyx":23
+  /* "_online_lda_fast.pyx":20
  *     cdef np.npy_intp i, size
  * 
  *     size = arr_1.shape[0]             # <<<<<<<<<<<<<<
@@ -1920,7 +1945,7 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
  */
   __pyx_v_size = (__pyx_v_arr_1->dimensions[0]);
 
-  /* "vytest.pyx":24
+  /* "_online_lda_fast.pyx":21
  * 
  *     size = arr_1.shape[0]
  *     total = 0.0             # <<<<<<<<<<<<<<
@@ -1929,7 +1954,7 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
  */
   __pyx_v_total = 0.0;
 
-  /* "vytest.pyx":25
+  /* "_online_lda_fast.pyx":22
  *     size = arr_1.shape[0]
  *     total = 0.0
  *     for i in range(size):             # <<<<<<<<<<<<<<
@@ -1941,7 +1966,7 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "vytest.pyx":26
+    /* "_online_lda_fast.pyx":23
  *     total = 0.0
  *     for i in range(size):
  *         diff = fabs(arr_1[i] - arr_2[i])             # <<<<<<<<<<<<<<
@@ -1949,10 +1974,28 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
  * 
  */
     __pyx_t_4 = __pyx_v_i;
-    __pyx_t_5 = __pyx_v_i;
-    __pyx_v_diff = fabs(((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_arr_1.rcbuffer->pybuffer.buf, __pyx_t_4, __pyx_pybuffernd_arr_1.diminfo[0].strides)) - (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_arr_2.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_arr_2.diminfo[0].strides))));
+    __pyx_t_5 = -1;
+    if (__pyx_t_4 < 0) {
+      __pyx_t_4 += __pyx_pybuffernd_arr_1.diminfo[0].shape;
+      if (unlikely(__pyx_t_4 < 0)) __pyx_t_5 = 0;
+    } else if (unlikely(__pyx_t_4 >= __pyx_pybuffernd_arr_1.diminfo[0].shape)) __pyx_t_5 = 0;
+    if (unlikely(__pyx_t_5 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_5);
+      __PYX_ERR(0, 23, __pyx_L1_error)
+    }
+    __pyx_t_6 = __pyx_v_i;
+    __pyx_t_5 = -1;
+    if (__pyx_t_6 < 0) {
+      __pyx_t_6 += __pyx_pybuffernd_arr_2.diminfo[0].shape;
+      if (unlikely(__pyx_t_6 < 0)) __pyx_t_5 = 0;
+    } else if (unlikely(__pyx_t_6 >= __pyx_pybuffernd_arr_2.diminfo[0].shape)) __pyx_t_5 = 0;
+    if (unlikely(__pyx_t_5 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_5);
+      __PYX_ERR(0, 23, __pyx_L1_error)
+    }
+    __pyx_v_diff = fabs(((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_arr_1.rcbuffer->pybuffer.buf, __pyx_t_4, __pyx_pybuffernd_arr_1.diminfo[0].strides)) - (*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_arr_2.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_arr_2.diminfo[0].strides))));
 
-    /* "vytest.pyx":27
+    /* "_online_lda_fast.pyx":24
  *     for i in range(size):
  *         diff = fabs(arr_1[i] - arr_2[i])
  *         total += diff             # <<<<<<<<<<<<<<
@@ -1962,7 +2005,7 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
     __pyx_v_total = (__pyx_v_total + __pyx_v_diff);
   }
 
-  /* "vytest.pyx":29
+  /* "_online_lda_fast.pyx":26
  *         total += diff
  * 
  *     return total / size             # <<<<<<<<<<<<<<
@@ -1972,15 +2015,15 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
   __Pyx_XDECREF(__pyx_r);
   if (unlikely(__pyx_v_size == 0)) {
     PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    __PYX_ERR(0, 29, __pyx_L1_error)
+    __PYX_ERR(0, 26, __pyx_L1_error)
   }
-  __pyx_t_6 = PyFloat_FromDouble((__pyx_v_total / __pyx_v_size)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 29, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_r = __pyx_t_6;
-  __pyx_t_6 = 0;
+  __pyx_t_7 = PyFloat_FromDouble((__pyx_v_total / __pyx_v_size)); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 26, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __pyx_r = __pyx_t_7;
+  __pyx_t_7 = 0;
   goto __pyx_L0;
 
-  /* "vytest.pyx":14
+  /* "_online_lda_fast.pyx":11
  * 
  * 
  * def mean_change(np.ndarray[ndim=1, dtype=np.float64_t] arr_1,             # <<<<<<<<<<<<<<
@@ -1990,7 +2033,7 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
 
   /* function exit code */
   __pyx_L1_error:;
-  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
   { PyObject *__pyx_type, *__pyx_value, *__pyx_tb;
     __Pyx_PyThreadState_declare
     __Pyx_PyThreadState_assign
@@ -1998,7 +2041,7 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_arr_1.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_arr_2.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("vytest.mean_change", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("_online_lda_fast.mean_change", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
@@ -2010,7 +2053,7 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
   return __pyx_r;
 }
 
-/* "vytest.pyx":32
+/* "_online_lda_fast.pyx":29
  * 
  * 
  * def _dirichlet_expectation_1d(np.ndarray[ndim=1, dtype=np.float64_t] doc_topic,             # <<<<<<<<<<<<<<
@@ -2019,10 +2062,10 @@ static PyObject *__pyx_pf_6vytest_mean_change(CYTHON_UNUSED PyObject *__pyx_self
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6vytest_3_dirichlet_expectation_1d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static char __pyx_doc_6vytest_2_dirichlet_expectation_1d[] = "Dirichlet expectation for a single sample:\n        exp(E[log(theta)]) for theta ~ Dir(doc_topic)\n    after adding doc_topic_prior to doc_topic, in-place.\n    Equivalent to\n        doc_topic += doc_topic_prior\n        out[:] = np.exp(psi(doc_topic) - psi(np.sum(doc_topic)))\n    ";
-static PyMethodDef __pyx_mdef_6vytest_3_dirichlet_expectation_1d = {"_dirichlet_expectation_1d", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_6vytest_3_dirichlet_expectation_1d, METH_VARARGS|METH_KEYWORDS, __pyx_doc_6vytest_2_dirichlet_expectation_1d};
-static PyObject *__pyx_pw_6vytest_3_dirichlet_expectation_1d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static PyObject *__pyx_pw_16_online_lda_fast_3_dirichlet_expectation_1d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static char __pyx_doc_16_online_lda_fast_2_dirichlet_expectation_1d[] = "Dirichlet expectation for a single sample:\n        exp(E[log(theta)]) for theta ~ Dir(doc_topic)\n    after adding doc_topic_prior to doc_topic, in-place.\n    Equivalent to\n        doc_topic += doc_topic_prior\n        out[:] = np.exp(psi(doc_topic) - psi(np.sum(doc_topic)))\n    ";
+static PyMethodDef __pyx_mdef_16_online_lda_fast_3_dirichlet_expectation_1d = {"_dirichlet_expectation_1d", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_16_online_lda_fast_3_dirichlet_expectation_1d, METH_VARARGS|METH_KEYWORDS, __pyx_doc_16_online_lda_fast_2_dirichlet_expectation_1d};
+static PyObject *__pyx_pw_16_online_lda_fast_3_dirichlet_expectation_1d(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyArrayObject *__pyx_v_doc_topic = 0;
   double __pyx_v_doc_topic_prior;
   PyArrayObject *__pyx_v_out = 0;
@@ -2054,17 +2097,17 @@ static PyObject *__pyx_pw_6vytest_3_dirichlet_expectation_1d(PyObject *__pyx_sel
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_doc_topic_prior)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_dirichlet_expectation_1d", 1, 3, 3, 1); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_dirichlet_expectation_1d", 1, 3, 3, 1); __PYX_ERR(0, 29, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_out)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("_dirichlet_expectation_1d", 1, 3, 3, 2); __PYX_ERR(0, 32, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("_dirichlet_expectation_1d", 1, 3, 3, 2); __PYX_ERR(0, 29, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_dirichlet_expectation_1d") < 0)) __PYX_ERR(0, 32, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "_dirichlet_expectation_1d") < 0)) __PYX_ERR(0, 29, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2074,20 +2117,20 @@ static PyObject *__pyx_pw_6vytest_3_dirichlet_expectation_1d(PyObject *__pyx_sel
       values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
     }
     __pyx_v_doc_topic = ((PyArrayObject *)values[0]);
-    __pyx_v_doc_topic_prior = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_doc_topic_prior == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
+    __pyx_v_doc_topic_prior = __pyx_PyFloat_AsDouble(values[1]); if (unlikely((__pyx_v_doc_topic_prior == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 30, __pyx_L3_error)
     __pyx_v_out = ((PyArrayObject *)values[2]);
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("_dirichlet_expectation_1d", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 32, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("_dirichlet_expectation_1d", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 29, __pyx_L3_error)
   __pyx_L3_error:;
-  __Pyx_AddTraceback("vytest._dirichlet_expectation_1d", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("_online_lda_fast._dirichlet_expectation_1d", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_doc_topic), __pyx_ptype_5numpy_ndarray, 1, "doc_topic", 0))) __PYX_ERR(0, 32, __pyx_L1_error)
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_out), __pyx_ptype_5numpy_ndarray, 1, "out", 0))) __PYX_ERR(0, 34, __pyx_L1_error)
-  __pyx_r = __pyx_pf_6vytest_2_dirichlet_expectation_1d(__pyx_self, __pyx_v_doc_topic, __pyx_v_doc_topic_prior, __pyx_v_out);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_doc_topic), __pyx_ptype_5numpy_ndarray, 1, "doc_topic", 0))) __PYX_ERR(0, 29, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_out), __pyx_ptype_5numpy_ndarray, 1, "out", 0))) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_r = __pyx_pf_16_online_lda_fast_2_dirichlet_expectation_1d(__pyx_self, __pyx_v_doc_topic, __pyx_v_doc_topic_prior, __pyx_v_out);
 
   /* function exit code */
   goto __pyx_L0;
@@ -2098,7 +2141,7 @@ static PyObject *__pyx_pw_6vytest_3_dirichlet_expectation_1d(PyObject *__pyx_sel
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_doc_topic, double __pyx_v_doc_topic_prior, PyArrayObject *__pyx_v_out) {
+static PyObject *__pyx_pf_16_online_lda_fast_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_doc_topic, double __pyx_v_doc_topic_prior, PyArrayObject *__pyx_v_out) {
   __pyx_t_5numpy_float64_t __pyx_v_dt;
   __pyx_t_5numpy_float64_t __pyx_v_psi_total;
   __pyx_t_5numpy_float64_t __pyx_v_total;
@@ -2114,9 +2157,10 @@ static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObj
   npy_intp __pyx_t_2;
   npy_intp __pyx_t_3;
   Py_ssize_t __pyx_t_4;
-  Py_ssize_t __pyx_t_5;
+  int __pyx_t_5;
   Py_ssize_t __pyx_t_6;
   Py_ssize_t __pyx_t_7;
+  Py_ssize_t __pyx_t_8;
   __Pyx_RefNannySetupContext("_dirichlet_expectation_1d", 0);
   __pyx_pybuffer_doc_topic.pybuffer.buf = NULL;
   __pyx_pybuffer_doc_topic.refcount = 0;
@@ -2128,16 +2172,16 @@ static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObj
   __pyx_pybuffernd_out.rcbuffer = &__pyx_pybuffer_out;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_doc_topic.rcbuffer->pybuffer, (PyObject*)__pyx_v_doc_topic, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 32, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_doc_topic.rcbuffer->pybuffer, (PyObject*)__pyx_v_doc_topic, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 29, __pyx_L1_error)
   }
   __pyx_pybuffernd_doc_topic.diminfo[0].strides = __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_doc_topic.diminfo[0].shape = __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.shape[0];
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_out.rcbuffer->pybuffer, (PyObject*)__pyx_v_out, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 32, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_out.rcbuffer->pybuffer, (PyObject*)__pyx_v_out, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 29, __pyx_L1_error)
   }
   __pyx_pybuffernd_out.diminfo[0].strides = __pyx_pybuffernd_out.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_out.diminfo[0].shape = __pyx_pybuffernd_out.rcbuffer->pybuffer.shape[0];
 
-  /* "vytest.pyx":46
+  /* "_online_lda_fast.pyx":43
  *     cdef np.npy_intp i, size
  * 
  *     size = doc_topic.shape[0]             # <<<<<<<<<<<<<<
@@ -2146,7 +2190,7 @@ static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObj
  */
   __pyx_v_size = (__pyx_v_doc_topic->dimensions[0]);
 
-  /* "vytest.pyx":48
+  /* "_online_lda_fast.pyx":45
  *     size = doc_topic.shape[0]
  * 
  *     total = 0.0             # <<<<<<<<<<<<<<
@@ -2155,7 +2199,7 @@ static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObj
  */
   __pyx_v_total = 0.0;
 
-  /* "vytest.pyx":49
+  /* "_online_lda_fast.pyx":46
  * 
  *     total = 0.0
  *     for i in range(size):             # <<<<<<<<<<<<<<
@@ -2167,7 +2211,7 @@ static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObj
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "vytest.pyx":50
+    /* "_online_lda_fast.pyx":47
  *     total = 0.0
  *     for i in range(size):
  *         dt = doc_topic[i] + doc_topic_prior             # <<<<<<<<<<<<<<
@@ -2175,19 +2219,37 @@ static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObj
  *         total += dt
  */
     __pyx_t_4 = __pyx_v_i;
+    __pyx_t_5 = -1;
+    if (__pyx_t_4 < 0) {
+      __pyx_t_4 += __pyx_pybuffernd_doc_topic.diminfo[0].shape;
+      if (unlikely(__pyx_t_4 < 0)) __pyx_t_5 = 0;
+    } else if (unlikely(__pyx_t_4 >= __pyx_pybuffernd_doc_topic.diminfo[0].shape)) __pyx_t_5 = 0;
+    if (unlikely(__pyx_t_5 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_5);
+      __PYX_ERR(0, 47, __pyx_L1_error)
+    }
     __pyx_v_dt = ((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.buf, __pyx_t_4, __pyx_pybuffernd_doc_topic.diminfo[0].strides)) + __pyx_v_doc_topic_prior);
 
-    /* "vytest.pyx":51
+    /* "_online_lda_fast.pyx":48
  *     for i in range(size):
  *         dt = doc_topic[i] + doc_topic_prior
  *         doc_topic[i] = dt             # <<<<<<<<<<<<<<
  *         total += dt
  *     psi_total = psi(total)
  */
-    __pyx_t_5 = __pyx_v_i;
-    *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.buf, __pyx_t_5, __pyx_pybuffernd_doc_topic.diminfo[0].strides) = __pyx_v_dt;
+    __pyx_t_6 = __pyx_v_i;
+    __pyx_t_5 = -1;
+    if (__pyx_t_6 < 0) {
+      __pyx_t_6 += __pyx_pybuffernd_doc_topic.diminfo[0].shape;
+      if (unlikely(__pyx_t_6 < 0)) __pyx_t_5 = 0;
+    } else if (unlikely(__pyx_t_6 >= __pyx_pybuffernd_doc_topic.diminfo[0].shape)) __pyx_t_5 = 0;
+    if (unlikely(__pyx_t_5 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_5);
+      __PYX_ERR(0, 48, __pyx_L1_error)
+    }
+    *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_doc_topic.diminfo[0].strides) = __pyx_v_dt;
 
-    /* "vytest.pyx":52
+    /* "_online_lda_fast.pyx":49
  *         dt = doc_topic[i] + doc_topic_prior
  *         doc_topic[i] = dt
  *         total += dt             # <<<<<<<<<<<<<<
@@ -2197,16 +2259,16 @@ static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObj
     __pyx_v_total = (__pyx_v_total + __pyx_v_dt);
   }
 
-  /* "vytest.pyx":53
+  /* "_online_lda_fast.pyx":50
  *         doc_topic[i] = dt
  *         total += dt
  *     psi_total = psi(total)             # <<<<<<<<<<<<<<
  * 
  *     for i in range(size):
  */
-  __pyx_v_psi_total = __pyx_f_6vytest_psi(__pyx_v_total);
+  __pyx_v_psi_total = __pyx_f_16_online_lda_fast_psi(__pyx_v_total);
 
-  /* "vytest.pyx":55
+  /* "_online_lda_fast.pyx":52
  *     psi_total = psi(total)
  * 
  *     for i in range(size):             # <<<<<<<<<<<<<<
@@ -2218,19 +2280,37 @@ static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObj
   for (__pyx_t_3 = 0; __pyx_t_3 < __pyx_t_2; __pyx_t_3+=1) {
     __pyx_v_i = __pyx_t_3;
 
-    /* "vytest.pyx":56
+    /* "_online_lda_fast.pyx":53
  * 
  *     for i in range(size):
  *         out[i] = exp(psi(doc_topic[i]) - psi_total)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-    __pyx_t_6 = __pyx_v_i;
     __pyx_t_7 = __pyx_v_i;
-    *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_out.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_out.diminfo[0].strides) = exp((__pyx_f_6vytest_psi((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.buf, __pyx_t_6, __pyx_pybuffernd_doc_topic.diminfo[0].strides))) - __pyx_v_psi_total));
+    __pyx_t_5 = -1;
+    if (__pyx_t_7 < 0) {
+      __pyx_t_7 += __pyx_pybuffernd_doc_topic.diminfo[0].shape;
+      if (unlikely(__pyx_t_7 < 0)) __pyx_t_5 = 0;
+    } else if (unlikely(__pyx_t_7 >= __pyx_pybuffernd_doc_topic.diminfo[0].shape)) __pyx_t_5 = 0;
+    if (unlikely(__pyx_t_5 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_5);
+      __PYX_ERR(0, 53, __pyx_L1_error)
+    }
+    __pyx_t_8 = __pyx_v_i;
+    __pyx_t_5 = -1;
+    if (__pyx_t_8 < 0) {
+      __pyx_t_8 += __pyx_pybuffernd_out.diminfo[0].shape;
+      if (unlikely(__pyx_t_8 < 0)) __pyx_t_5 = 0;
+    } else if (unlikely(__pyx_t_8 >= __pyx_pybuffernd_out.diminfo[0].shape)) __pyx_t_5 = 0;
+    if (unlikely(__pyx_t_5 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_5);
+      __PYX_ERR(0, 53, __pyx_L1_error)
+    }
+    *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_out.rcbuffer->pybuffer.buf, __pyx_t_8, __pyx_pybuffernd_out.diminfo[0].strides) = exp((__pyx_f_16_online_lda_fast_psi((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_doc_topic.rcbuffer->pybuffer.buf, __pyx_t_7, __pyx_pybuffernd_doc_topic.diminfo[0].strides))) - __pyx_v_psi_total));
   }
 
-  /* "vytest.pyx":32
+  /* "_online_lda_fast.pyx":29
  * 
  * 
  * def _dirichlet_expectation_1d(np.ndarray[ndim=1, dtype=np.float64_t] doc_topic,             # <<<<<<<<<<<<<<
@@ -2249,7 +2329,7 @@ static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObj
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_doc_topic.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_out.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("vytest._dirichlet_expectation_1d", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("_online_lda_fast._dirichlet_expectation_1d", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
@@ -2261,7 +2341,7 @@ static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObj
   return __pyx_r;
 }
 
-/* "vytest.pyx":59
+/* "_online_lda_fast.pyx":56
  * 
  * 
  * def _dirichlet_expectation_2d(np.ndarray[ndim=2, dtype=np.float64_t] arr):             # <<<<<<<<<<<<<<
@@ -2270,15 +2350,15 @@ static PyObject *__pyx_pf_6vytest_2_dirichlet_expectation_1d(CYTHON_UNUSED PyObj
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_6vytest_5_dirichlet_expectation_2d(PyObject *__pyx_self, PyObject *__pyx_v_arr); /*proto*/
-static char __pyx_doc_6vytest_4_dirichlet_expectation_2d[] = "Dirichlet expectation for multiple samples:\n    E[log(theta)] for theta ~ Dir(arr).\n    Equivalent to psi(arr) - psi(np.sum(arr, axis=1))[:, np.newaxis].\n    Note that unlike _dirichlet_expectation_1d, this function doesn't compute\n    the exp and doesn't add in the prior.\n    ";
-static PyMethodDef __pyx_mdef_6vytest_5_dirichlet_expectation_2d = {"_dirichlet_expectation_2d", (PyCFunction)__pyx_pw_6vytest_5_dirichlet_expectation_2d, METH_O, __pyx_doc_6vytest_4_dirichlet_expectation_2d};
-static PyObject *__pyx_pw_6vytest_5_dirichlet_expectation_2d(PyObject *__pyx_self, PyObject *__pyx_v_arr) {
+static PyObject *__pyx_pw_16_online_lda_fast_5_dirichlet_expectation_2d(PyObject *__pyx_self, PyObject *__pyx_v_arr); /*proto*/
+static char __pyx_doc_16_online_lda_fast_4_dirichlet_expectation_2d[] = "Dirichlet expectation for multiple samples:\n    E[log(theta)] for theta ~ Dir(arr).\n    Equivalent to psi(arr) - psi(np.sum(arr, axis=1))[:, np.newaxis].\n    Note that unlike _dirichlet_expectation_1d, this function doesn't compute\n    the exp and doesn't add in the prior.\n    ";
+static PyMethodDef __pyx_mdef_16_online_lda_fast_5_dirichlet_expectation_2d = {"_dirichlet_expectation_2d", (PyCFunction)__pyx_pw_16_online_lda_fast_5_dirichlet_expectation_2d, METH_O, __pyx_doc_16_online_lda_fast_4_dirichlet_expectation_2d};
+static PyObject *__pyx_pw_16_online_lda_fast_5_dirichlet_expectation_2d(PyObject *__pyx_self, PyObject *__pyx_v_arr) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("_dirichlet_expectation_2d (wrapper)", 0);
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_arr), __pyx_ptype_5numpy_ndarray, 1, "arr", 0))) __PYX_ERR(0, 59, __pyx_L1_error)
-  __pyx_r = __pyx_pf_6vytest_4_dirichlet_expectation_2d(__pyx_self, ((PyArrayObject *)__pyx_v_arr));
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_arr), __pyx_ptype_5numpy_ndarray, 1, "arr", 0))) __PYX_ERR(0, 56, __pyx_L1_error)
+  __pyx_r = __pyx_pf_16_online_lda_fast_4_dirichlet_expectation_2d(__pyx_self, ((PyArrayObject *)__pyx_v_arr));
 
   /* function exit code */
   goto __pyx_L0;
@@ -2289,7 +2369,7 @@ static PyObject *__pyx_pw_6vytest_5_dirichlet_expectation_2d(PyObject *__pyx_sel
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_arr) {
+static PyObject *__pyx_pf_16_online_lda_fast_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_arr) {
   __pyx_t_5numpy_float64_t __pyx_v_row_total;
   __pyx_t_5numpy_float64_t __pyx_v_psi_row_total;
   PyArrayObject *__pyx_v_d_exp = 0;
@@ -2334,11 +2414,11 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
   __pyx_pybuffernd_arr.rcbuffer = &__pyx_pybuffer_arr;
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
-    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_arr.rcbuffer->pybuffer, (PyObject*)__pyx_v_arr, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 59, __pyx_L1_error)
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_arr.rcbuffer->pybuffer, (PyObject*)__pyx_v_arr, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 2, 0, __pyx_stack) == -1)) __PYX_ERR(0, 56, __pyx_L1_error)
   }
   __pyx_pybuffernd_arr.diminfo[0].strides = __pyx_pybuffernd_arr.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_arr.diminfo[0].shape = __pyx_pybuffernd_arr.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_arr.diminfo[1].strides = __pyx_pybuffernd_arr.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_arr.diminfo[1].shape = __pyx_pybuffernd_arr.rcbuffer->pybuffer.shape[1];
 
-  /* "vytest.pyx":70
+  /* "_online_lda_fast.pyx":67
  *     cdef np.npy_intp i, j, n_rows, n_cols
  * 
  *     n_rows = arr.shape[0]             # <<<<<<<<<<<<<<
@@ -2347,7 +2427,7 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
  */
   __pyx_v_n_rows = (__pyx_v_arr->dimensions[0]);
 
-  /* "vytest.pyx":71
+  /* "_online_lda_fast.pyx":68
  * 
  *     n_rows = arr.shape[0]
  *     n_cols = arr.shape[1]             # <<<<<<<<<<<<<<
@@ -2356,16 +2436,16 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
  */
   __pyx_v_n_cols = (__pyx_v_arr->dimensions[1]);
 
-  /* "vytest.pyx":73
+  /* "_online_lda_fast.pyx":70
  *     n_cols = arr.shape[1]
  * 
  *     d_exp = np.empty_like(arr)             # <<<<<<<<<<<<<<
  *     for i in range(n_rows):
  *         row_total = 0
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 73, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_empty_like); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -2380,10 +2460,10 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
   }
   __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, ((PyObject *)__pyx_v_arr)) : __Pyx_PyObject_CallOneArg(__pyx_t_3, ((PyObject *)__pyx_v_arr));
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 73, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 73, __pyx_L1_error)
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 70, __pyx_L1_error)
   __pyx_t_4 = ((PyArrayObject *)__pyx_t_1);
   {
     __Pyx_BufFmt_StackElem __pyx_stack[1];
@@ -2400,13 +2480,13 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
       __pyx_t_6 = __pyx_t_7 = __pyx_t_8 = 0;
     }
     __pyx_pybuffernd_d_exp.diminfo[0].strides = __pyx_pybuffernd_d_exp.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_d_exp.diminfo[0].shape = __pyx_pybuffernd_d_exp.rcbuffer->pybuffer.shape[0]; __pyx_pybuffernd_d_exp.diminfo[1].strides = __pyx_pybuffernd_d_exp.rcbuffer->pybuffer.strides[1]; __pyx_pybuffernd_d_exp.diminfo[1].shape = __pyx_pybuffernd_d_exp.rcbuffer->pybuffer.shape[1];
-    if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 73, __pyx_L1_error)
+    if (unlikely(__pyx_t_5 < 0)) __PYX_ERR(0, 70, __pyx_L1_error)
   }
   __pyx_t_4 = 0;
   __pyx_v_d_exp = ((PyArrayObject *)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "vytest.pyx":74
+  /* "_online_lda_fast.pyx":71
  * 
  *     d_exp = np.empty_like(arr)
  *     for i in range(n_rows):             # <<<<<<<<<<<<<<
@@ -2418,7 +2498,7 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
   for (__pyx_t_11 = 0; __pyx_t_11 < __pyx_t_10; __pyx_t_11+=1) {
     __pyx_v_i = __pyx_t_11;
 
-    /* "vytest.pyx":75
+    /* "_online_lda_fast.pyx":72
  *     d_exp = np.empty_like(arr)
  *     for i in range(n_rows):
  *         row_total = 0             # <<<<<<<<<<<<<<
@@ -2427,7 +2507,7 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
  */
     __pyx_v_row_total = 0.0;
 
-    /* "vytest.pyx":76
+    /* "_online_lda_fast.pyx":73
  *     for i in range(n_rows):
  *         row_total = 0
  *         for j in range(n_cols):             # <<<<<<<<<<<<<<
@@ -2439,7 +2519,7 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
     for (__pyx_t_14 = 0; __pyx_t_14 < __pyx_t_13; __pyx_t_14+=1) {
       __pyx_v_j = __pyx_t_14;
 
-      /* "vytest.pyx":77
+      /* "_online_lda_fast.pyx":74
  *         row_total = 0
  *         for j in range(n_cols):
  *             row_total += arr[i, j]             # <<<<<<<<<<<<<<
@@ -2448,19 +2528,32 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
  */
       __pyx_t_15 = __pyx_v_i;
       __pyx_t_16 = __pyx_v_j;
+      __pyx_t_5 = -1;
+      if (__pyx_t_15 < 0) {
+        __pyx_t_15 += __pyx_pybuffernd_arr.diminfo[0].shape;
+        if (unlikely(__pyx_t_15 < 0)) __pyx_t_5 = 0;
+      } else if (unlikely(__pyx_t_15 >= __pyx_pybuffernd_arr.diminfo[0].shape)) __pyx_t_5 = 0;
+      if (__pyx_t_16 < 0) {
+        __pyx_t_16 += __pyx_pybuffernd_arr.diminfo[1].shape;
+        if (unlikely(__pyx_t_16 < 0)) __pyx_t_5 = 1;
+      } else if (unlikely(__pyx_t_16 >= __pyx_pybuffernd_arr.diminfo[1].shape)) __pyx_t_5 = 1;
+      if (unlikely(__pyx_t_5 != -1)) {
+        __Pyx_RaiseBufferIndexError(__pyx_t_5);
+        __PYX_ERR(0, 74, __pyx_L1_error)
+      }
       __pyx_v_row_total = (__pyx_v_row_total + (*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_arr.rcbuffer->pybuffer.buf, __pyx_t_15, __pyx_pybuffernd_arr.diminfo[0].strides, __pyx_t_16, __pyx_pybuffernd_arr.diminfo[1].strides)));
     }
 
-    /* "vytest.pyx":78
+    /* "_online_lda_fast.pyx":75
  *         for j in range(n_cols):
  *             row_total += arr[i, j]
  *         psi_row_total = psi(row_total)             # <<<<<<<<<<<<<<
  * 
  *         for j in range(n_cols):
  */
-    __pyx_v_psi_row_total = __pyx_f_6vytest_psi(__pyx_v_row_total);
+    __pyx_v_psi_row_total = __pyx_f_16_online_lda_fast_psi(__pyx_v_row_total);
 
-    /* "vytest.pyx":80
+    /* "_online_lda_fast.pyx":77
  *         psi_row_total = psi(row_total)
  * 
  *         for j in range(n_cols):             # <<<<<<<<<<<<<<
@@ -2472,7 +2565,7 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
     for (__pyx_t_14 = 0; __pyx_t_14 < __pyx_t_13; __pyx_t_14+=1) {
       __pyx_v_j = __pyx_t_14;
 
-      /* "vytest.pyx":81
+      /* "_online_lda_fast.pyx":78
  * 
  *         for j in range(n_cols):
  *             d_exp[i, j] = psi(arr[i, j]) - psi_row_total             # <<<<<<<<<<<<<<
@@ -2481,13 +2574,39 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
  */
       __pyx_t_17 = __pyx_v_i;
       __pyx_t_18 = __pyx_v_j;
+      __pyx_t_5 = -1;
+      if (__pyx_t_17 < 0) {
+        __pyx_t_17 += __pyx_pybuffernd_arr.diminfo[0].shape;
+        if (unlikely(__pyx_t_17 < 0)) __pyx_t_5 = 0;
+      } else if (unlikely(__pyx_t_17 >= __pyx_pybuffernd_arr.diminfo[0].shape)) __pyx_t_5 = 0;
+      if (__pyx_t_18 < 0) {
+        __pyx_t_18 += __pyx_pybuffernd_arr.diminfo[1].shape;
+        if (unlikely(__pyx_t_18 < 0)) __pyx_t_5 = 1;
+      } else if (unlikely(__pyx_t_18 >= __pyx_pybuffernd_arr.diminfo[1].shape)) __pyx_t_5 = 1;
+      if (unlikely(__pyx_t_5 != -1)) {
+        __Pyx_RaiseBufferIndexError(__pyx_t_5);
+        __PYX_ERR(0, 78, __pyx_L1_error)
+      }
       __pyx_t_19 = __pyx_v_i;
       __pyx_t_20 = __pyx_v_j;
-      *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_d_exp.rcbuffer->pybuffer.buf, __pyx_t_19, __pyx_pybuffernd_d_exp.diminfo[0].strides, __pyx_t_20, __pyx_pybuffernd_d_exp.diminfo[1].strides) = (__pyx_f_6vytest_psi((*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_arr.rcbuffer->pybuffer.buf, __pyx_t_17, __pyx_pybuffernd_arr.diminfo[0].strides, __pyx_t_18, __pyx_pybuffernd_arr.diminfo[1].strides))) - __pyx_v_psi_row_total);
+      __pyx_t_5 = -1;
+      if (__pyx_t_19 < 0) {
+        __pyx_t_19 += __pyx_pybuffernd_d_exp.diminfo[0].shape;
+        if (unlikely(__pyx_t_19 < 0)) __pyx_t_5 = 0;
+      } else if (unlikely(__pyx_t_19 >= __pyx_pybuffernd_d_exp.diminfo[0].shape)) __pyx_t_5 = 0;
+      if (__pyx_t_20 < 0) {
+        __pyx_t_20 += __pyx_pybuffernd_d_exp.diminfo[1].shape;
+        if (unlikely(__pyx_t_20 < 0)) __pyx_t_5 = 1;
+      } else if (unlikely(__pyx_t_20 >= __pyx_pybuffernd_d_exp.diminfo[1].shape)) __pyx_t_5 = 1;
+      if (unlikely(__pyx_t_5 != -1)) {
+        __Pyx_RaiseBufferIndexError(__pyx_t_5);
+        __PYX_ERR(0, 78, __pyx_L1_error)
+      }
+      *__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_d_exp.rcbuffer->pybuffer.buf, __pyx_t_19, __pyx_pybuffernd_d_exp.diminfo[0].strides, __pyx_t_20, __pyx_pybuffernd_d_exp.diminfo[1].strides) = (__pyx_f_16_online_lda_fast_psi((*__Pyx_BufPtrStrided2d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_arr.rcbuffer->pybuffer.buf, __pyx_t_17, __pyx_pybuffernd_arr.diminfo[0].strides, __pyx_t_18, __pyx_pybuffernd_arr.diminfo[1].strides))) - __pyx_v_psi_row_total);
     }
   }
 
-  /* "vytest.pyx":83
+  /* "_online_lda_fast.pyx":80
  *             d_exp[i, j] = psi(arr[i, j]) - psi_row_total
  * 
  *     return d_exp             # <<<<<<<<<<<<<<
@@ -2499,7 +2618,7 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
   __pyx_r = ((PyObject *)__pyx_v_d_exp);
   goto __pyx_L0;
 
-  /* "vytest.pyx":59
+  /* "_online_lda_fast.pyx":56
  * 
  * 
  * def _dirichlet_expectation_2d(np.ndarray[ndim=2, dtype=np.float64_t] arr):             # <<<<<<<<<<<<<<
@@ -2519,7 +2638,7 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_arr.rcbuffer->pybuffer);
     __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_d_exp.rcbuffer->pybuffer);
   __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
-  __Pyx_AddTraceback("vytest._dirichlet_expectation_2d", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("_online_lda_fast._dirichlet_expectation_2d", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   goto __pyx_L2;
   __pyx_L0:;
@@ -2532,7 +2651,7 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
   return __pyx_r;
 }
 
-/* "vytest.pyx":91
+/* "_online_lda_fast.pyx":88
  * # https://www.uv.es/~bernardo/1976AppStatist.pdf
  * @cython.cdivision(True)
  * cdef double psi(double x) nogil:             # <<<<<<<<<<<<<<
@@ -2540,13 +2659,13 @@ static PyObject *__pyx_pf_6vytest_4_dirichlet_expectation_2d(CYTHON_UNUSED PyObj
  *         # psi(x) = -EULER - 1/x + O(x)
  */
 
-static double __pyx_f_6vytest_psi(double __pyx_v_x) {
+static double __pyx_f_16_online_lda_fast_psi(double __pyx_v_x) {
   double __pyx_v_r;
   double __pyx_v_result;
   double __pyx_r;
   int __pyx_t_1;
 
-  /* "vytest.pyx":92
+  /* "_online_lda_fast.pyx":89
  * @cython.cdivision(True)
  * cdef double psi(double x) nogil:
  *     if x <= 1e-6:             # <<<<<<<<<<<<<<
@@ -2556,7 +2675,7 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
   __pyx_t_1 = ((__pyx_v_x <= 1e-6) != 0);
   if (__pyx_t_1) {
 
-    /* "vytest.pyx":94
+    /* "_online_lda_fast.pyx":91
  *     if x <= 1e-6:
  *         # psi(x) = -EULER - 1/x + O(x)
  *         return -EULER - 1. / x             # <<<<<<<<<<<<<<
@@ -2566,7 +2685,7 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
     __pyx_r = ((-NPY_EULER) - (1. / __pyx_v_x));
     goto __pyx_L0;
 
-    /* "vytest.pyx":92
+    /* "_online_lda_fast.pyx":89
  * @cython.cdivision(True)
  * cdef double psi(double x) nogil:
  *     if x <= 1e-6:             # <<<<<<<<<<<<<<
@@ -2575,7 +2694,7 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
  */
   }
 
-  /* "vytest.pyx":96
+  /* "_online_lda_fast.pyx":93
  *         return -EULER - 1. / x
  * 
  *     cdef double r, result = 0             # <<<<<<<<<<<<<<
@@ -2584,7 +2703,7 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
  */
   __pyx_v_result = 0.0;
 
-  /* "vytest.pyx":99
+  /* "_online_lda_fast.pyx":96
  * 
  *     # psi(x + 1) = psi(x) + 1/x
  *     while x < 6:             # <<<<<<<<<<<<<<
@@ -2595,7 +2714,7 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
     __pyx_t_1 = ((__pyx_v_x < 6.0) != 0);
     if (!__pyx_t_1) break;
 
-    /* "vytest.pyx":100
+    /* "_online_lda_fast.pyx":97
  *     # psi(x + 1) = psi(x) + 1/x
  *     while x < 6:
  *         result -= 1. / x             # <<<<<<<<<<<<<<
@@ -2604,7 +2723,7 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
  */
     __pyx_v_result = (__pyx_v_result - (1. / __pyx_v_x));
 
-    /* "vytest.pyx":101
+    /* "_online_lda_fast.pyx":98
  *     while x < 6:
  *         result -= 1. / x
  *         x += 1             # <<<<<<<<<<<<<<
@@ -2614,7 +2733,7 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
     __pyx_v_x = (__pyx_v_x + 1.0);
   }
 
-  /* "vytest.pyx":105
+  /* "_online_lda_fast.pyx":102
  *     # psi(x) = log(x) - 1/(2x) - 1/(12x**2) + 1/(120x**4) - 1/(252x**6)
  *     #          + O(1/x**8)
  *     r = 1. / x             # <<<<<<<<<<<<<<
@@ -2623,7 +2742,7 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
  */
   __pyx_v_r = (1. / __pyx_v_x);
 
-  /* "vytest.pyx":106
+  /* "_online_lda_fast.pyx":103
  *     #          + O(1/x**8)
  *     r = 1. / x
  *     result += log(x) - .5 * r             # <<<<<<<<<<<<<<
@@ -2632,7 +2751,7 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
  */
   __pyx_v_result = (__pyx_v_result + (log(__pyx_v_x) - (.5 * __pyx_v_r)));
 
-  /* "vytest.pyx":107
+  /* "_online_lda_fast.pyx":104
  *     r = 1. / x
  *     result += log(x) - .5 * r
  *     r = r * r             # <<<<<<<<<<<<<<
@@ -2641,7 +2760,7 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
  */
   __pyx_v_r = (__pyx_v_r * __pyx_v_r);
 
-  /* "vytest.pyx":108
+  /* "_online_lda_fast.pyx":105
  *     result += log(x) - .5 * r
  *     r = r * r
  *     result -= r * ((1./12.) - r * ((1./120.) - r * (1./252.)))             # <<<<<<<<<<<<<<
@@ -2650,16 +2769,17 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
  */
   __pyx_v_result = (__pyx_v_result - (__pyx_v_r * ((1. / 12.) - (__pyx_v_r * ((1. / 120.) - (__pyx_v_r * (1. / 252.)))))));
 
-  /* "vytest.pyx":109
+  /* "_online_lda_fast.pyx":106
  *     r = r * r
  *     result -= r * ((1./12.) - r * ((1./120.) - r * (1./252.)))
  *     return result;             # <<<<<<<<<<<<<<
  * 
+ * def _dirichlet_expectation_1d_(np.ndarray[ndim=1, dtype=np.float64_t] arr):
  */
   __pyx_r = __pyx_v_result;
   goto __pyx_L0;
 
-  /* "vytest.pyx":91
+  /* "_online_lda_fast.pyx":88
  * # https://www.uv.es/~bernardo/1976AppStatist.pdf
  * @cython.cdivision(True)
  * cdef double psi(double x) nogil:             # <<<<<<<<<<<<<<
@@ -2669,6 +2789,233 @@ static double __pyx_f_6vytest_psi(double __pyx_v_x) {
 
   /* function exit code */
   __pyx_L0:;
+  return __pyx_r;
+}
+
+/* "_online_lda_fast.pyx":108
+ *     return result;
+ * 
+ * def _dirichlet_expectation_1d_(np.ndarray[ndim=1, dtype=np.float64_t] arr):             # <<<<<<<<<<<<<<
+ *     """Dirichlet expectation for multiple samples:
+ *     E[log(theta)] for theta ~ Dir(arr).
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_16_online_lda_fast_7_dirichlet_expectation_1d_(PyObject *__pyx_self, PyObject *__pyx_v_arr); /*proto*/
+static char __pyx_doc_16_online_lda_fast_6_dirichlet_expectation_1d_[] = "Dirichlet expectation for multiple samples:\n    E[log(theta)] for theta ~ Dir(arr).\n    Equivalent to psi(arr) - psi(np.sum(arr, axis=1))[:, np.newaxis].\n    Note that unlike _dirichlet_expectation_1d, this function doesn't compute\n    the exp and doesn't add in the prior.\n    ";
+static PyMethodDef __pyx_mdef_16_online_lda_fast_7_dirichlet_expectation_1d_ = {"_dirichlet_expectation_1d_", (PyCFunction)__pyx_pw_16_online_lda_fast_7_dirichlet_expectation_1d_, METH_O, __pyx_doc_16_online_lda_fast_6_dirichlet_expectation_1d_};
+static PyObject *__pyx_pw_16_online_lda_fast_7_dirichlet_expectation_1d_(PyObject *__pyx_self, PyObject *__pyx_v_arr) {
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("_dirichlet_expectation_1d_ (wrapper)", 0);
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_arr), __pyx_ptype_5numpy_ndarray, 1, "arr", 0))) __PYX_ERR(0, 108, __pyx_L1_error)
+  __pyx_r = __pyx_pf_16_online_lda_fast_6_dirichlet_expectation_1d_(__pyx_self, ((PyArrayObject *)__pyx_v_arr));
+
+  /* function exit code */
+  goto __pyx_L0;
+  __pyx_L1_error:;
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_16_online_lda_fast_6_dirichlet_expectation_1d_(CYTHON_UNUSED PyObject *__pyx_self, PyArrayObject *__pyx_v_arr) {
+  __pyx_t_5numpy_float64_t __pyx_v_psi_row_total;
+  PyArrayObject *__pyx_v_d_exp = 0;
+  npy_intp __pyx_v_n_rows;
+  npy_intp __pyx_v_i;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_arr;
+  __Pyx_Buffer __pyx_pybuffer_arr;
+  __Pyx_LocalBuf_ND __pyx_pybuffernd_d_exp;
+  __Pyx_Buffer __pyx_pybuffer_d_exp;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  PyArrayObject *__pyx_t_5 = NULL;
+  int __pyx_t_6;
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9 = NULL;
+  double __pyx_t_10;
+  npy_intp __pyx_t_11;
+  npy_intp __pyx_t_12;
+  npy_intp __pyx_t_13;
+  Py_ssize_t __pyx_t_14;
+  Py_ssize_t __pyx_t_15;
+  __Pyx_RefNannySetupContext("_dirichlet_expectation_1d_", 0);
+  __pyx_pybuffer_d_exp.pybuffer.buf = NULL;
+  __pyx_pybuffer_d_exp.refcount = 0;
+  __pyx_pybuffernd_d_exp.data = NULL;
+  __pyx_pybuffernd_d_exp.rcbuffer = &__pyx_pybuffer_d_exp;
+  __pyx_pybuffer_arr.pybuffer.buf = NULL;
+  __pyx_pybuffer_arr.refcount = 0;
+  __pyx_pybuffernd_arr.data = NULL;
+  __pyx_pybuffernd_arr.rcbuffer = &__pyx_pybuffer_arr;
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_arr.rcbuffer->pybuffer, (PyObject*)__pyx_v_arr, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES, 1, 0, __pyx_stack) == -1)) __PYX_ERR(0, 108, __pyx_L1_error)
+  }
+  __pyx_pybuffernd_arr.diminfo[0].strides = __pyx_pybuffernd_arr.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_arr.diminfo[0].shape = __pyx_pybuffernd_arr.rcbuffer->pybuffer.shape[0];
+
+  /* "_online_lda_fast.pyx":119
+ *     cdef np.npy_intp n_rows, i
+ * 
+ *     n_rows = arr.shape[0]             # <<<<<<<<<<<<<<
+ *     d_exp = np.zeros(n_rows, dtype='float64')
+ *     psi_row_total = psi(sum(arr))
+ */
+  __pyx_v_n_rows = (__pyx_v_arr->dimensions[0]);
+
+  /* "_online_lda_fast.pyx":120
+ * 
+ *     n_rows = arr.shape[0]
+ *     d_exp = np.zeros(n_rows, dtype='float64')             # <<<<<<<<<<<<<<
+ *     psi_row_total = psi(sum(arr))
+ *     for i in range(n_rows):
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_PyInt_From_Py_intptr_t(__pyx_v_n_rows); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
+  __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_n_s_float64) < 0) __PYX_ERR(0, 120, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 120, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 120, __pyx_L1_error)
+  __pyx_t_5 = ((PyArrayObject *)__pyx_t_4);
+  {
+    __Pyx_BufFmt_StackElem __pyx_stack[1];
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_d_exp.rcbuffer->pybuffer);
+    __pyx_t_6 = __Pyx_GetBufferAndValidate(&__pyx_pybuffernd_d_exp.rcbuffer->pybuffer, (PyObject*)__pyx_t_5, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack);
+    if (unlikely(__pyx_t_6 < 0)) {
+      PyErr_Fetch(&__pyx_t_7, &__pyx_t_8, &__pyx_t_9);
+      if (unlikely(__Pyx_GetBufferAndValidate(&__pyx_pybuffernd_d_exp.rcbuffer->pybuffer, (PyObject*)__pyx_v_d_exp, &__Pyx_TypeInfo_nn___pyx_t_5numpy_float64_t, PyBUF_FORMAT| PyBUF_STRIDES| PyBUF_WRITABLE, 1, 0, __pyx_stack) == -1)) {
+        Py_XDECREF(__pyx_t_7); Py_XDECREF(__pyx_t_8); Py_XDECREF(__pyx_t_9);
+        __Pyx_RaiseBufferFallbackError();
+      } else {
+        PyErr_Restore(__pyx_t_7, __pyx_t_8, __pyx_t_9);
+      }
+      __pyx_t_7 = __pyx_t_8 = __pyx_t_9 = 0;
+    }
+    __pyx_pybuffernd_d_exp.diminfo[0].strides = __pyx_pybuffernd_d_exp.rcbuffer->pybuffer.strides[0]; __pyx_pybuffernd_d_exp.diminfo[0].shape = __pyx_pybuffernd_d_exp.rcbuffer->pybuffer.shape[0];
+    if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 120, __pyx_L1_error)
+  }
+  __pyx_t_5 = 0;
+  __pyx_v_d_exp = ((PyArrayObject *)__pyx_t_4);
+  __pyx_t_4 = 0;
+
+  /* "_online_lda_fast.pyx":121
+ *     n_rows = arr.shape[0]
+ *     d_exp = np.zeros(n_rows, dtype='float64')
+ *     psi_row_total = psi(sum(arr))             # <<<<<<<<<<<<<<
+ *     for i in range(n_rows):
+ *         d_exp[i] = psi(arr[i]) - psi_row_total
+ */
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_sum, ((PyObject *)__pyx_v_arr)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_10 = __pyx_PyFloat_AsDouble(__pyx_t_4); if (unlikely((__pyx_t_10 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 121, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_v_psi_row_total = __pyx_f_16_online_lda_fast_psi(__pyx_t_10);
+
+  /* "_online_lda_fast.pyx":122
+ *     d_exp = np.zeros(n_rows, dtype='float64')
+ *     psi_row_total = psi(sum(arr))
+ *     for i in range(n_rows):             # <<<<<<<<<<<<<<
+ *         d_exp[i] = psi(arr[i]) - psi_row_total
+ * 
+ */
+  __pyx_t_11 = __pyx_v_n_rows;
+  __pyx_t_12 = __pyx_t_11;
+  for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
+    __pyx_v_i = __pyx_t_13;
+
+    /* "_online_lda_fast.pyx":123
+ *     psi_row_total = psi(sum(arr))
+ *     for i in range(n_rows):
+ *         d_exp[i] = psi(arr[i]) - psi_row_total             # <<<<<<<<<<<<<<
+ * 
+ *     return d_exp
+ */
+    __pyx_t_14 = __pyx_v_i;
+    __pyx_t_6 = -1;
+    if (__pyx_t_14 < 0) {
+      __pyx_t_14 += __pyx_pybuffernd_arr.diminfo[0].shape;
+      if (unlikely(__pyx_t_14 < 0)) __pyx_t_6 = 0;
+    } else if (unlikely(__pyx_t_14 >= __pyx_pybuffernd_arr.diminfo[0].shape)) __pyx_t_6 = 0;
+    if (unlikely(__pyx_t_6 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_6);
+      __PYX_ERR(0, 123, __pyx_L1_error)
+    }
+    __pyx_t_15 = __pyx_v_i;
+    __pyx_t_6 = -1;
+    if (__pyx_t_15 < 0) {
+      __pyx_t_15 += __pyx_pybuffernd_d_exp.diminfo[0].shape;
+      if (unlikely(__pyx_t_15 < 0)) __pyx_t_6 = 0;
+    } else if (unlikely(__pyx_t_15 >= __pyx_pybuffernd_d_exp.diminfo[0].shape)) __pyx_t_6 = 0;
+    if (unlikely(__pyx_t_6 != -1)) {
+      __Pyx_RaiseBufferIndexError(__pyx_t_6);
+      __PYX_ERR(0, 123, __pyx_L1_error)
+    }
+    *__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_d_exp.rcbuffer->pybuffer.buf, __pyx_t_15, __pyx_pybuffernd_d_exp.diminfo[0].strides) = (__pyx_f_16_online_lda_fast_psi((*__Pyx_BufPtrStrided1d(__pyx_t_5numpy_float64_t *, __pyx_pybuffernd_arr.rcbuffer->pybuffer.buf, __pyx_t_14, __pyx_pybuffernd_arr.diminfo[0].strides))) - __pyx_v_psi_row_total);
+  }
+
+  /* "_online_lda_fast.pyx":125
+ *         d_exp[i] = psi(arr[i]) - psi_row_total
+ * 
+ *     return d_exp             # <<<<<<<<<<<<<<
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_INCREF(((PyObject *)__pyx_v_d_exp));
+  __pyx_r = ((PyObject *)__pyx_v_d_exp);
+  goto __pyx_L0;
+
+  /* "_online_lda_fast.pyx":108
+ *     return result;
+ * 
+ * def _dirichlet_expectation_1d_(np.ndarray[ndim=1, dtype=np.float64_t] arr):             # <<<<<<<<<<<<<<
+ *     """Dirichlet expectation for multiple samples:
+ *     E[log(theta)] for theta ~ Dir(arr).
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  { PyObject *__pyx_type, *__pyx_value, *__pyx_tb;
+    __Pyx_PyThreadState_declare
+    __Pyx_PyThreadState_assign
+    __Pyx_ErrFetch(&__pyx_type, &__pyx_value, &__pyx_tb);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_arr.rcbuffer->pybuffer);
+    __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_d_exp.rcbuffer->pybuffer);
+  __Pyx_ErrRestore(__pyx_type, __pyx_value, __pyx_tb);}
+  __Pyx_AddTraceback("_online_lda_fast._dirichlet_expectation_1d_", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  goto __pyx_L2;
+  __pyx_L0:;
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_arr.rcbuffer->pybuffer);
+  __Pyx_SafeReleaseBuffer(&__pyx_pybuffernd_d_exp.rcbuffer->pybuffer);
+  __pyx_L2:;
+  __Pyx_XDECREF((PyObject *)__pyx_v_d_exp);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
@@ -5097,17 +5444,17 @@ static PyMethodDef __pyx_methods[] = {
 #if PY_MAJOR_VERSION >= 3
 #if CYTHON_PEP489_MULTI_PHASE_INIT
 static PyObject* __pyx_pymod_create(PyObject *spec, PyModuleDef *def); /*proto*/
-static int __pyx_pymod_exec_vytest(PyObject* module); /*proto*/
+static int __pyx_pymod_exec__online_lda_fast(PyObject* module); /*proto*/
 static PyModuleDef_Slot __pyx_moduledef_slots[] = {
   {Py_mod_create, (void*)__pyx_pymod_create},
-  {Py_mod_exec, (void*)__pyx_pymod_exec_vytest},
+  {Py_mod_exec, (void*)__pyx_pymod_exec__online_lda_fast},
   {0, NULL}
 };
 #endif
 
 static struct PyModuleDef __pyx_moduledef = {
     PyModuleDef_HEAD_INIT,
-    "vytest",
+    "_online_lda_fast",
     0, /* m_doc */
   #if CYTHON_PEP489_MULTI_PHASE_INIT
     0, /* m_size */
@@ -5149,11 +5496,14 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_d_exp, __pyx_k_d_exp, sizeof(__pyx_k_d_exp), 0, 0, 1, 1},
   {&__pyx_n_s_diff, __pyx_k_diff, sizeof(__pyx_k_diff), 0, 0, 1, 1},
   {&__pyx_n_s_dirichlet_expectation_1d, __pyx_k_dirichlet_expectation_1d, sizeof(__pyx_k_dirichlet_expectation_1d), 0, 0, 1, 1},
+  {&__pyx_n_s_dirichlet_expectation_1d_2, __pyx_k_dirichlet_expectation_1d_2, sizeof(__pyx_k_dirichlet_expectation_1d_2), 0, 0, 1, 1},
   {&__pyx_n_s_dirichlet_expectation_2d, __pyx_k_dirichlet_expectation_2d, sizeof(__pyx_k_dirichlet_expectation_2d), 0, 0, 1, 1},
   {&__pyx_n_s_doc_topic, __pyx_k_doc_topic, sizeof(__pyx_k_doc_topic), 0, 0, 1, 1},
   {&__pyx_n_s_doc_topic_prior, __pyx_k_doc_topic_prior, sizeof(__pyx_k_doc_topic_prior), 0, 0, 1, 1},
   {&__pyx_n_s_dt, __pyx_k_dt, sizeof(__pyx_k_dt), 0, 0, 1, 1},
+  {&__pyx_n_s_dtype, __pyx_k_dtype, sizeof(__pyx_k_dtype), 0, 0, 1, 1},
   {&__pyx_n_s_empty_like, __pyx_k_empty_like, sizeof(__pyx_k_empty_like), 0, 0, 1, 1},
+  {&__pyx_n_s_float64, __pyx_k_float64, sizeof(__pyx_k_float64), 0, 0, 1, 1},
   {&__pyx_n_s_i, __pyx_k_i, sizeof(__pyx_k_i), 0, 0, 1, 1},
   {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
   {&__pyx_n_s_j, __pyx_k_j, sizeof(__pyx_k_j), 0, 0, 1, 1},
@@ -5168,21 +5518,24 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
   {&__pyx_kp_s_numpy_core_multiarray_failed_to, __pyx_k_numpy_core_multiarray_failed_to, sizeof(__pyx_k_numpy_core_multiarray_failed_to), 0, 0, 1, 0},
   {&__pyx_kp_s_numpy_core_umath_failed_to_impor, __pyx_k_numpy_core_umath_failed_to_impor, sizeof(__pyx_k_numpy_core_umath_failed_to_impor), 0, 0, 1, 0},
+  {&__pyx_n_s_online_lda_fast, __pyx_k_online_lda_fast, sizeof(__pyx_k_online_lda_fast), 0, 0, 1, 1},
+  {&__pyx_kp_s_online_lda_fast_pyx, __pyx_k_online_lda_fast_pyx, sizeof(__pyx_k_online_lda_fast_pyx), 0, 0, 1, 0},
   {&__pyx_n_s_out, __pyx_k_out, sizeof(__pyx_k_out), 0, 0, 1, 1},
   {&__pyx_n_s_psi_row_total, __pyx_k_psi_row_total, sizeof(__pyx_k_psi_row_total), 0, 0, 1, 1},
   {&__pyx_n_s_psi_total, __pyx_k_psi_total, sizeof(__pyx_k_psi_total), 0, 0, 1, 1},
   {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
   {&__pyx_n_s_row_total, __pyx_k_row_total, sizeof(__pyx_k_row_total), 0, 0, 1, 1},
   {&__pyx_n_s_size, __pyx_k_size, sizeof(__pyx_k_size), 0, 0, 1, 1},
+  {&__pyx_n_s_sum, __pyx_k_sum, sizeof(__pyx_k_sum), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
   {&__pyx_n_s_total, __pyx_k_total, sizeof(__pyx_k_total), 0, 0, 1, 1},
   {&__pyx_kp_u_unknown_dtype_code_in_numpy_pxd, __pyx_k_unknown_dtype_code_in_numpy_pxd, sizeof(__pyx_k_unknown_dtype_code_in_numpy_pxd), 0, 1, 0, 0},
-  {&__pyx_n_s_vytest, __pyx_k_vytest, sizeof(__pyx_k_vytest), 0, 0, 1, 1},
-  {&__pyx_kp_s_vytest_pyx, __pyx_k_vytest_pyx, sizeof(__pyx_k_vytest_pyx), 0, 0, 1, 0},
+  {&__pyx_n_s_zeros, __pyx_k_zeros, sizeof(__pyx_k_zeros), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 25, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_builtin_sum = __Pyx_GetBuiltinName(__pyx_n_s_sum); if (!__pyx_builtin_sum) __PYX_ERR(0, 121, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(1, 272, __pyx_L1_error)
   __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(1, 856, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 1038, __pyx_L1_error)
@@ -5272,41 +5625,53 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "vytest.pyx":14
+  /* "_online_lda_fast.pyx":11
  * 
  * 
  * def mean_change(np.ndarray[ndim=1, dtype=np.float64_t] arr_1,             # <<<<<<<<<<<<<<
  *                 np.ndarray[ndim=1, dtype=np.float64_t] arr_2):
  *     """Calculate the mean difference between two arrays.
  */
-  __pyx_tuple__8 = PyTuple_Pack(6, __pyx_n_s_arr_1, __pyx_n_s_arr_2, __pyx_n_s_total, __pyx_n_s_diff, __pyx_n_s_i, __pyx_n_s_size); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 14, __pyx_L1_error)
+  __pyx_tuple__8 = PyTuple_Pack(6, __pyx_n_s_arr_1, __pyx_n_s_arr_2, __pyx_n_s_total, __pyx_n_s_diff, __pyx_n_s_i, __pyx_n_s_size); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
-  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_vytest_pyx, __pyx_n_s_mean_change, 14, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 14, __pyx_L1_error)
+  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(2, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_online_lda_fast_pyx, __pyx_n_s_mean_change, 11, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 11, __pyx_L1_error)
 
-  /* "vytest.pyx":32
+  /* "_online_lda_fast.pyx":29
  * 
  * 
  * def _dirichlet_expectation_1d(np.ndarray[ndim=1, dtype=np.float64_t] doc_topic,             # <<<<<<<<<<<<<<
  *                               double doc_topic_prior,
  *                               np.ndarray[ndim=1, dtype=np.float64_t] out):
  */
-  __pyx_tuple__10 = PyTuple_Pack(8, __pyx_n_s_doc_topic, __pyx_n_s_doc_topic_prior, __pyx_n_s_out, __pyx_n_s_dt, __pyx_n_s_psi_total, __pyx_n_s_total, __pyx_n_s_i, __pyx_n_s_size); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_tuple__10 = PyTuple_Pack(8, __pyx_n_s_doc_topic, __pyx_n_s_doc_topic_prior, __pyx_n_s_out, __pyx_n_s_dt, __pyx_n_s_psi_total, __pyx_n_s_total, __pyx_n_s_i, __pyx_n_s_size); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 29, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
-  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(3, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_vytest_pyx, __pyx_n_s_dirichlet_expectation_1d, 32, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(3, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_online_lda_fast_pyx, __pyx_n_s_dirichlet_expectation_1d, 29, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 29, __pyx_L1_error)
 
-  /* "vytest.pyx":59
+  /* "_online_lda_fast.pyx":56
  * 
  * 
  * def _dirichlet_expectation_2d(np.ndarray[ndim=2, dtype=np.float64_t] arr):             # <<<<<<<<<<<<<<
  *     """Dirichlet expectation for multiple samples:
  *     E[log(theta)] for theta ~ Dir(arr).
  */
-  __pyx_tuple__12 = PyTuple_Pack(8, __pyx_n_s_arr, __pyx_n_s_row_total, __pyx_n_s_psi_row_total, __pyx_n_s_d_exp, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_n_rows, __pyx_n_s_n_cols); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_tuple__12 = PyTuple_Pack(8, __pyx_n_s_arr, __pyx_n_s_row_total, __pyx_n_s_psi_row_total, __pyx_n_s_d_exp, __pyx_n_s_i, __pyx_n_s_j, __pyx_n_s_n_rows, __pyx_n_s_n_cols); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
-  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(1, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_vytest_pyx, __pyx_n_s_dirichlet_expectation_2d, 59, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(1, 0, 8, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_online_lda_fast_pyx, __pyx_n_s_dirichlet_expectation_2d, 56, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) __PYX_ERR(0, 56, __pyx_L1_error)
+
+  /* "_online_lda_fast.pyx":108
+ *     return result;
+ * 
+ * def _dirichlet_expectation_1d_(np.ndarray[ndim=1, dtype=np.float64_t] arr):             # <<<<<<<<<<<<<<
+ *     """Dirichlet expectation for multiple samples:
+ *     E[log(theta)] for theta ~ Dir(arr).
+ */
+  __pyx_tuple__14 = PyTuple_Pack(6, __pyx_n_s_arr, __pyx_n_s_row_total, __pyx_n_s_psi_row_total, __pyx_n_s_d_exp, __pyx_n_s_n_rows, __pyx_n_s_i); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 108, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__14);
+  __Pyx_GIVEREF(__pyx_tuple__14);
+  __pyx_codeobj__15 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__14, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_online_lda_fast_pyx, __pyx_n_s_dirichlet_expectation_1d_2, 108, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__15)) __PYX_ERR(0, 108, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -5431,11 +5796,11 @@ static int __Pyx_modinit_function_import_code(void) {
 
 
 #if PY_MAJOR_VERSION < 3
-__Pyx_PyMODINIT_FUNC initvytest(void) CYTHON_SMALL_CODE; /*proto*/
-__Pyx_PyMODINIT_FUNC initvytest(void)
+__Pyx_PyMODINIT_FUNC init_online_lda_fast(void) CYTHON_SMALL_CODE; /*proto*/
+__Pyx_PyMODINIT_FUNC init_online_lda_fast(void)
 #else
-__Pyx_PyMODINIT_FUNC PyInit_vytest(void) CYTHON_SMALL_CODE; /*proto*/
-__Pyx_PyMODINIT_FUNC PyInit_vytest(void)
+__Pyx_PyMODINIT_FUNC PyInit__online_lda_fast(void) CYTHON_SMALL_CODE; /*proto*/
+__Pyx_PyMODINIT_FUNC PyInit__online_lda_fast(void)
 #if CYTHON_PEP489_MULTI_PHASE_INIT
 {
   return PyModuleDef_Init(&__pyx_moduledef);
@@ -5502,7 +5867,7 @@ bad:
 }
 
 
-static CYTHON_SMALL_CODE int __pyx_pymod_exec_vytest(PyObject *__pyx_pyinit_module)
+static CYTHON_SMALL_CODE int __pyx_pymod_exec__online_lda_fast(PyObject *__pyx_pyinit_module)
 #endif
 #endif
 {
@@ -5512,7 +5877,7 @@ static CYTHON_SMALL_CODE int __pyx_pymod_exec_vytest(PyObject *__pyx_pyinit_modu
   #if CYTHON_PEP489_MULTI_PHASE_INIT
   if (__pyx_m) {
     if (__pyx_m == __pyx_pyinit_module) return 0;
-    PyErr_SetString(PyExc_RuntimeError, "Module 'vytest' has already been imported. Re-initialisation is not supported.");
+    PyErr_SetString(PyExc_RuntimeError, "Module '_online_lda_fast' has already been imported. Re-initialisation is not supported.");
     return -1;
   }
   #elif PY_MAJOR_VERSION >= 3
@@ -5527,7 +5892,7 @@ if (!__Pyx_RefNanny) {
       Py_FatalError("failed to import 'refnanny' module");
 }
 #endif
-  __Pyx_RefNannySetupContext("__Pyx_PyMODINIT_FUNC PyInit_vytest(void)", 0);
+  __Pyx_RefNannySetupContext("__Pyx_PyMODINIT_FUNC PyInit__online_lda_fast(void)", 0);
   if (__Pyx_check_binary_version() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #ifdef __Pxy_PyFrame_Initialize_Offsets
   __Pxy_PyFrame_Initialize_Offsets();
@@ -5566,7 +5931,7 @@ if (!__Pyx_RefNanny) {
   Py_INCREF(__pyx_m);
   #else
   #if PY_MAJOR_VERSION < 3
-  __pyx_m = Py_InitModule4("vytest", __pyx_methods, 0, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
+  __pyx_m = Py_InitModule4("_online_lda_fast", __pyx_methods, 0, 0, PYTHON_API_VERSION); Py_XINCREF(__pyx_m);
   #else
   __pyx_m = PyModule_Create(&__pyx_moduledef);
   #endif
@@ -5584,14 +5949,14 @@ if (!__Pyx_RefNanny) {
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
-  if (__pyx_module_is_main_vytest) {
+  if (__pyx_module_is_main__online_lda_fast) {
     if (PyObject_SetAttr(__pyx_m, __pyx_n_s_name, __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) __PYX_ERR(0, 1, __pyx_L1_error)
-    if (!PyDict_GetItemString(modules, "vytest")) {
-      if (unlikely(PyDict_SetItemString(modules, "vytest", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
+    if (!PyDict_GetItemString(modules, "_online_lda_fast")) {
+      if (unlikely(PyDict_SetItemString(modules, "_online_lda_fast", __pyx_m) < 0)) __PYX_ERR(0, 1, __pyx_L1_error)
     }
   }
   #endif
@@ -5612,67 +5977,79 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_patch_abc() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
 
-  /* "vytest.pyx":6
+  /* "_online_lda_fast.pyx":3
  * cimport cython
  * cimport numpy as np
  * import numpy as np             # <<<<<<<<<<<<<<
  * 
  * np.import_array()
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_numpy, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 6, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_np, __pyx_t_1) < 0) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "vytest.pyx":8
+  /* "_online_lda_fast.pyx":5
  * import numpy as np
  * 
  * np.import_array()             # <<<<<<<<<<<<<<
  * 
  * from libc.math cimport exp, fabs, log
  */
-  __pyx_t_2 = __pyx_f_5numpy_import_array(); if (unlikely(__pyx_t_2 == ((int)-1))) __PYX_ERR(0, 8, __pyx_L1_error)
+  __pyx_t_2 = __pyx_f_5numpy_import_array(); if (unlikely(__pyx_t_2 == ((int)-1))) __PYX_ERR(0, 5, __pyx_L1_error)
 
-  /* "vytest.pyx":14
+  /* "_online_lda_fast.pyx":11
  * 
  * 
  * def mean_change(np.ndarray[ndim=1, dtype=np.float64_t] arr_1,             # <<<<<<<<<<<<<<
  *                 np.ndarray[ndim=1, dtype=np.float64_t] arr_2):
  *     """Calculate the mean difference between two arrays.
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6vytest_1mean_change, NULL, __pyx_n_s_vytest); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 14, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_16_online_lda_fast_1mean_change, NULL, __pyx_n_s_online_lda_fast); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_mean_change, __pyx_t_1) < 0) __PYX_ERR(0, 14, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_mean_change, __pyx_t_1) < 0) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "vytest.pyx":32
+  /* "_online_lda_fast.pyx":29
  * 
  * 
  * def _dirichlet_expectation_1d(np.ndarray[ndim=1, dtype=np.float64_t] doc_topic,             # <<<<<<<<<<<<<<
  *                               double doc_topic_prior,
  *                               np.ndarray[ndim=1, dtype=np.float64_t] out):
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6vytest_3_dirichlet_expectation_1d, NULL, __pyx_n_s_vytest); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_16_online_lda_fast_3_dirichlet_expectation_1d, NULL, __pyx_n_s_online_lda_fast); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 29, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_dirichlet_expectation_1d, __pyx_t_1) < 0) __PYX_ERR(0, 32, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_dirichlet_expectation_1d, __pyx_t_1) < 0) __PYX_ERR(0, 29, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "vytest.pyx":59
+  /* "_online_lda_fast.pyx":56
  * 
  * 
  * def _dirichlet_expectation_2d(np.ndarray[ndim=2, dtype=np.float64_t] arr):             # <<<<<<<<<<<<<<
  *     """Dirichlet expectation for multiple samples:
  *     E[log(theta)] for theta ~ Dir(arr).
  */
-  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_6vytest_5_dirichlet_expectation_2d, NULL, __pyx_n_s_vytest); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_16_online_lda_fast_5_dirichlet_expectation_2d, NULL, __pyx_n_s_online_lda_fast); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_dirichlet_expectation_2d, __pyx_t_1) < 0) __PYX_ERR(0, 59, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_dirichlet_expectation_2d, __pyx_t_1) < 0) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "vytest.pyx":1
- * #             # <<<<<<<<<<<<<<
- * # cython: boundscheck=False, wraparound=False
+  /* "_online_lda_fast.pyx":108
+ *     return result;
  * 
+ * def _dirichlet_expectation_1d_(np.ndarray[ndim=1, dtype=np.float64_t] arr):             # <<<<<<<<<<<<<<
+ *     """Dirichlet expectation for multiple samples:
+ *     E[log(theta)] for theta ~ Dir(arr).
+ */
+  __pyx_t_1 = PyCFunction_NewEx(&__pyx_mdef_16_online_lda_fast_7_dirichlet_expectation_1d_, NULL, __pyx_n_s_online_lda_fast); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 108, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_dirichlet_expectation_1d_2, __pyx_t_1) < 0) __PYX_ERR(0, 108, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "_online_lda_fast.pyx":1
+ * cimport cython             # <<<<<<<<<<<<<<
+ * cimport numpy as np
+ * import numpy as np
  */
   __pyx_t_1 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -5694,11 +6071,11 @@ if (!__Pyx_RefNanny) {
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init vytest", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init _online_lda_fast", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_CLEAR(__pyx_m);
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init vytest");
+    PyErr_SetString(PyExc_ImportError, "init _online_lda_fast");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
@@ -6479,6 +6856,12 @@ static int __Pyx__GetBufferAndValidate(
 fail:;
   __Pyx_SafeReleaseBuffer(buf);
   return -1;
+}
+
+/* BufferIndexError */
+  static void __Pyx_RaiseBufferIndexError(int axis) {
+  PyErr_Format(PyExc_IndexError,
+     "Out of bounds on buffer access (axis %d)", axis);
 }
 
 /* PyErrFetchRestore */

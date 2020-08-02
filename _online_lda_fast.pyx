@@ -1,6 +1,3 @@
-#
-# cython: boundscheck=False, wraparound=False
-
 cimport cython
 cimport numpy as np
 import numpy as np
@@ -108,3 +105,21 @@ cdef double psi(double x) nogil:
     result -= r * ((1./12.) - r * ((1./120.) - r * (1./252.)))
     return result;
 
+def _dirichlet_expectation_1d_(np.ndarray[ndim=1, dtype=np.float64_t] arr):
+    """Dirichlet expectation for multiple samples:
+    E[log(theta)] for theta ~ Dir(arr).
+    Equivalent to psi(arr) - psi(np.sum(arr, axis=1))[:, np.newaxis].
+    Note that unlike _dirichlet_expectation_1d, this function doesn't compute
+    the exp and doesn't add in the prior.
+    """
+    cdef np.float64_t row_total, psi_row_total
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] d_exp
+    cdef np.npy_intp n_rows, i
+
+    n_rows = arr.shape[0]
+    d_exp = np.zeros(n_rows, dtype='float64')
+    psi_row_total = psi(sum(arr))
+    for i in range(n_rows):
+        d_exp[i] = psi(arr[i]) - psi_row_total
+
+    return d_exp
