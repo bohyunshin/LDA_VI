@@ -5,11 +5,17 @@ from collections import Counter, OrderedDict
 import pickle
 import time
 from _online_lda_fast import _dirichlet_expectation_2d, _dirichlet_expectation_1d_
+from sklearn.feature_extraction.text import CountVectorizer
+
+EPS = np.finfo(np.float).eps
 
 class LDA_VI:
     def __init__(self, path_data, alpha, eta,  K):
         # loading data
         self.data = pickle.load(open(path_data, 'rb'))
+        np.random.seed(0)
+        idx = np.random.choice(len(self.data), 100, replace=False)
+        self.data = [j for i, j in enumerate(self.data) if i in idx]
         self.alpha = alpha # hyperparameter; dimension: T * 1 but assume symmetric prior
         self.eta = eta  # hyperparameter; dimension: M * 1 but assume symmetric prior
         self.K = K
@@ -23,6 +29,11 @@ class LDA_VI:
         self.w2idx = {j:i for i,j in enumerate(self.vocab)}
         self.idx2w = {val:key for key, val in self.w2idx.items()}
         self.doc2idx = [ [self.w2idx[word] for word in doc] for doc in self.data]
+
+        # make DTM
+        self.data_join = [' '.join(doc) for doc in self.data]
+        self.cv = CountVectorizer(vocabulary=self.w2idx)
+        self.X = self.cv.fit_transform(self.data_join).toarray()
 
     def _init_params(self):
         '''
@@ -51,11 +62,50 @@ class LDA_VI:
         self._update_gam_E_dir()
 
 
-        # self.alpha_star = np.zeros(self.T)
-        # for d in range(self.D):
-        #     tmp = np.repeat(self.Nd[d], self.T)/self.T + self.alpha
-        #     self.alpha_star = np.vstack((self.alpha_star, tmp))
-        # self.alpha_star = self.alpha_star[1:,:]
+    # def _update_doc_distribution(self,  cal_sstats, threshold, max_iters = 100):
+    #     # array to store normalized phi
+    #     # we do not calculate this for every document iteration
+    #     # we calculate this after gamma converge, which means the e-step is ended.
+    #     suff_stats = np.zeros((self.V, self.K)) if cal_sstats else None
+    #     for d in range(self.D):
+    #         ids = np.nonzero(self.X[d,:])[0] # 1*ids
+    #         cnts = self.X[d, ids] # 1*ids
+    #
+    #         # this is gamma parameter before optimization
+    #         doc_topic_d = self.gam[d,:]
+    #
+    #
+    #         exp_topic_word_d = self.lam[ids, :] # ids*K
+    #
+    #         for _ in range(max_iters):
+    #             last_d = doc_topic_d
+    #             exp_doc_topic_d = exp(self.gam_E[d,:]) # K*1
+    #
+    #             # get optimal value of phi_{dwk}
+    #             # which is proportional to exp(E[log(theta_{dk})]) * exp(E[log(beta_{dw})])
+    #             # in our variable,
+    #             # exp(E[log(theta_{dk})]): exp_doc_topic_d
+    #             # exp(E[log(beta_{dw})]): exp_topic_word_d
+    #             norm_phi = np.dot(exp_doc_topic_d, exp_topic_word_d.T) + EPS # ids * 1
+    #             # each element of norm_phi stores \sum_k phi_{dwk}, which means normalizer of exp * exp
+    #
+    #             # finally, update gamma parameter
+    #             # not np.dot, just product of each element
+    #             doc_topic_d = (exp_doc_topic_d * # K*1
+    #                            np.dot(cnts / norm_phi, exp_topic_word_d)) # K*1
+    #
+    #             self.gam_E[d,:] = self._E_dir_1d(doc_topic_d)
+    #
+    #             if sum(abs(last_d - doc_topic_d)) / self.K < threshold:
+    #                 break
+    #         self.gam[d,:] = doc_topic_d
+    #
+    #         if cal_sstats:
+    #             norm_phi = np.dot(exp_doc_topic_d, exp_topic_word_d.T) + EPS  # ids * 1
+    #             suff_stats[ids, :] += np.outer()
+    #
+    #
+    #     return None
 
     def _ELBO(self):
         term1 = 0 # E[ log p( w | phi, z) ]
@@ -155,7 +205,6 @@ class LDA_VI:
         self.phi[Nd_index,:] = exp(self.phi[Nd_index,:])
         # normalize prob
         self.phi[Nd_index,:] /= np.sum(self.phi[Nd_index,:], axis=1)[:,None]
-        1+1
         # print(None)
 
     def _update_gam(self,d):
