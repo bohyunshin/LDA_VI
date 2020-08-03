@@ -10,10 +10,16 @@ from online_lda import LDA_VI
 dir = "/Users/shinbo/Desktop/metting/LDA/0. data/20news-bydate/newsgroup_preprocessed.pickle"
 lda = LDA_VI(dir, 5, 0.1, 10)
 
-
-
 lda.train(0.01)
-# pickle.dump(lda, open('lda_model.pickle', 'wb'))
+pickle.dump(lda, open('lda_model.pickle', 'wb'))
+
+
+
+
+
+
+
+
 
 # model = pickle.load(open('lda_model.pickle','rb'))
 #
@@ -32,5 +38,3 @@ lda.train(0.01)
 #                        + ' | ' for i in topic.argsort()[:-n_top_words - 1:-1]]))
 #
 # print_top_words(lda_lam, list(model.w2idx.keys()), 15)
-
-

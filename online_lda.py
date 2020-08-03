@@ -14,7 +14,7 @@ class LDA_VI:
         # loading data
         self.data = pickle.load(open(path_data, 'rb'))
         np.random.seed(0)
-        idx = np.random.choice(len(self.data), 100, replace=False)
+        idx = np.random.choice(len(self.data), 1000, replace=False)
         self.data = [j for i, j in enumerate(self.data) if i in idx]
         self.alpha = alpha # hyperparameter; dimension: T * 1 but assume symmetric prior
         self.eta = eta  # hyperparameter; dimension: M * 1 but assume symmetric prior
@@ -26,14 +26,17 @@ class LDA_VI:
         for lst in self.data:
             self.vocab += lst
         self.vocab = sorted(list(set(self.vocab)))
-        self.w2idx = {j:i for i,j in enumerate(self.vocab)}
-        self.idx2w = {val:key for key, val in self.w2idx.items()}
-        self.doc2idx = [ [self.w2idx[word] for word in doc] for doc in self.data]
 
         # make DTM
         self.data_join = [' '.join(doc) for doc in self.data]
-        self.cv = CountVectorizer(vocabulary=self.w2idx)
+        self.cv = CountVectorizer()
         self.X = self.cv.fit_transform(self.data_join).toarray()
+        self.w2idx = self.cv.vocabulary_
+        self.idx2w = {val: key for key, val in self.w2idx.items()}
+
+        # excluded words from count vectorizer
+        stop_words = list(set(self.vocab) - set(list(self.w2idx.keys())))
+
 
     def _init_params(self):
         '''
@@ -46,7 +49,6 @@ class LDA_VI:
         self.V = len(self.w2idx)
         self.D = len(self.data)
         self.Nd = [len(doc) for doc in self.data]
-        self.Ndw = [ OrderedDict(sorted(Counter(doc).items()))  for doc in self.doc2idx ]
 
         # set initial value for free variational parameters
         self.phi = np.ones((self.V, self.K)) # dimension: for topic d, Nd * K
@@ -127,12 +129,12 @@ class LDA_VI:
         # update term 1, 2, 3, 4, 5
         for d in range(self.D):
 
-            ndw = np.array(list(self.Ndw[d].keys()))
+            ndw = self.X[d,:]
             for k in range(self.K):
                 # update term 1
                 tmp = self.lam_E[:,k] * self.phi[:,k]
                 ndw_vec = np.zeros(self.V) # V * 1
-                ndw_vec[ndw] += np.array(list(self.Ndw[d].values()))
+                ndw_vec[ndw] += self.X[d,ndw]
                 term1 += (tmp * ndw_vec).sum()
 
                 # update term 2
@@ -189,7 +191,7 @@ class LDA_VI:
 
     def _update_phi(self, d):
         # duplicated words are ignored
-        Nd_index = np.array(list(set(self.doc2idx[d])))
+        Nd_index = np.nonzero(self.X[d,:])[0]
         # get the proportional value in each topic t,
         # and then normalize to make as probabilities
         # the indicator of Z_dn remains only one term
@@ -208,23 +210,20 @@ class LDA_VI:
         # print(None)
 
     def _update_gam(self,d):
-        tmp = self.Ndw[d]
         gam_d = np.repeat(self.alpha, self.K)
-        for w in self.doc2idx[d]:
-            gam_d = gam_d +  tmp[w] * self.phi[w,:] # K * 1 dimension
+        ids = np.nonzero(self.X[d,:])[0]
+        n_dw = self.X[d,:][ids] # ids*1
+        phi_dwk = self.phi[ids,:] # ids*K
+        gam_d = gam_d + np.dot(n_dw, phi_dwk) # K*1 + scalar
+
         self.gam[d,:] = gam_d
         self.gam_E[d, :] = self._E_dir_1d(self.gam[d, :])
 
 
     def _update_lam(self):
         for k in range(self.K):
-            lam_k = np.repeat(self.eta, self.V)
-            for d, doc in enumerate(self.doc2idx):
-                for w in doc:
-                    lam_kw = self.Ndw[d][w] * self.phi[w,k]
-                    lam_k[w] += lam_kw
+            lam_k = np.sum(self.X, axis=0) * self.phi[:,k] + self.eta
             self.lam[:,k] = lam_k
-
         # update lambda dirichlet expectation
         self._update_lam_E_dir()
 
