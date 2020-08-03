@@ -10,7 +10,7 @@ from online_lda import LDA_VI
 dir = "/Users/shinbo/Desktop/metting/LDA/0. data/20news-bydate/newsgroup_preprocessed.pickle"
 lda = LDA_VI(dir, 5, 0.1, 10)
 
-lda.train(0.01)
+lda.train(threshold=.01, max_iter=10000)
 pickle.dump(lda, open('lda_model.pickle', 'wb'))
 
 
@@ -20,7 +20,7 @@ pickle.dump(lda, open('lda_model.pickle', 'wb'))
 
 
 
-
+#
 # model = pickle.load(open('lda_model.pickle','rb'))
 #
 # #
@@ -37,4 +37,7 @@ pickle.dump(lda, open('lda_model.pickle', 'wb'))
 #         print(''.join([feature_names[i] + ' ' + str(round(topic[i], 2))
 #                        + ' | ' for i in topic.argsort()[:-n_top_words - 1:-1]]))
 #
-# print_top_words(lda_lam, list(model.w2idx.keys()), 15)
+# print_top_words(lda_lam, list(model.cv.get_feature_names()), 200)
+#
+# print(model.perplexity)
+# print(model._ELBO_history)

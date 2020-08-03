@@ -1,6 +1,6 @@
 import numpy as np
 from numpy import exp, log
-from scipy.special import digamma, gamma, polygamma
+from scipy.special import digamma, gamma, loggamma
 from collections import Counter, OrderedDict
 import pickle
 import time
@@ -150,11 +150,11 @@ class LDA_VI:
 
 
             # update term 4
-            term4 += digamma(self.K * self.alpha) - log(self.K * gamma(self.alpha))
+            term4 += loggamma(self.K * self.alpha) - log(self.K * gamma(self.alpha))
             term4 += (self.alpha - 1) * self.gam_E[d,:].sum()
 
             # update term 5
-            term5 += digamma(sum(self.gam[d,:])) - sum(digamma(self.gam[d,:]))
+            term5 += loggamma(sum(self.gam[d,:])) - sum(loggamma(self.gam[d,:]))
             term5 += ( (self.gam[d,:]-1) * self.gam_E[d,:] ).sum()
 
         print('Done term 1 ~ 5')
@@ -162,11 +162,11 @@ class LDA_VI:
 
         for k in range(self.K):
             # update term 6
-            term6 += digamma(self.V * self.eta) - log(self.V * gamma(self.eta))
+            term6 += loggamma(self.V * self.eta) - log(self.V * gamma(self.eta))
             term6 +=  (self.eta-1) * self.lam_E[:,k].sum()
 
             # update term 7
-            term7 += digamma(sum( self.lam[:,k] )) - sum( digamma(self.lam[:,k]) )
+            term7 += loggamma(sum( self.lam[:,k] )) - sum( loggamma(self.lam[:,k]) )
             term7 += ( ( self.lam[:,k]-1 ) * ( self.lam_E[:,k] ) ).sum()
         print('Done term 6, 7')
 
@@ -228,7 +228,7 @@ class LDA_VI:
         self._update_lam_E_dir()
 
 
-    def train(self, threshold):
+    def train(self, threshold, max_iter):
 
         print('Making Vocabs...')
         self._make_vocab()
@@ -246,7 +246,7 @@ class LDA_VI:
         self._ELBO_history = []
 
         print('##################### start training #####################')
-        while abs(ELBO_after - ELBO_before) > threshold:
+        for iter in range(max_iter):
             start = time.time()
             ELBO_before = ELBO_after
             print('\n')
@@ -271,18 +271,20 @@ class LDA_VI:
             print('Finished Iteration!')
             print('\n')
 
-            print('Now calculating ELBO...')
-            ELBO_after = self._ELBO()
+            if iter % 50 == 0:
+                print('Now calculating ELBO...')
+                ELBO_after = self._ELBO()
+                self._ELBO_history.append(ELBO_after)
+                self._perplexity(ELBO_after)
 
-            self._ELBO_history.append(ELBO_after)
+                print(f'Before ELBO: {ELBO_before}')
+                print(f'After ELBO: {ELBO_after}')
+                print('\n')
 
-            self._perplexity(ELBO_after)
+                if abs(ELBO_before - ELBO_after) < threshold:
+                    break
 
-            print(f'Before ELBO: {ELBO_before}')
-            print(f'After ELBO: {ELBO_after}')
-            print('\n')
             print(f'Computation time: {(time.time()-start)/60} mins')
-
         print('Done Optimizing!')
 
 
