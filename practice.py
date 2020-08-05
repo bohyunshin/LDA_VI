@@ -11,7 +11,7 @@ from online_lda import LDA_VI
 # run my LDA model
 dir = "/Users/shinbo/Desktop/metting/LDA/0. data/20news-bydate/newsgroup_preprocessed.pickle"
 lda = LDA_VI(dir, 5, 0.1, 10)
-lda.train(threshold=.01, max_iter=10000)
+lda.train(threshold=.01, max_iter=1000)
 pickle.dump(lda, open('lda_model.pickle', 'wb'))
 #
 # # load lda model
