@@ -13,9 +13,9 @@ class LDA_VI:
     def __init__(self, path_data, alpha, eta,  K):
         # loading data
         self.data = pickle.load(open(path_data, 'rb'))
-        # np.random.seed(0)
-        # idx = np.random.choice(len(self.data), 1000, replace=False)
-        # self.data = [j for i, j in enumerate(self.data) if i in idx]
+        np.random.seed(0)
+        idx = np.random.choice(len(self.data), 1000, replace=False)
+        self.data = [j for i, j in enumerate(self.data) if i in idx]
         self.alpha = alpha # hyperparameter; dimension: T * 1 but assume symmetric prior
         self.eta = eta  # hyperparameter; dimension: M * 1 but assume symmetric prior
         self.K = K
@@ -55,7 +55,7 @@ class LDA_VI:
 
         # initialize variational parameters of dirichlet through gamma distribution
         np.random.seed(1)
-        self.lam = np.random.gamma(100, 1/100, (self.V, self.K)) # dimension: M * K
+        self.lam = np.random.gamma(100, 1/100, (self.V, self.K)) # dimension: V * K
         np.random.seed(2)
         self.gam = np.random.gamma(100, 1/100, (self.D, self.K)) # dimension: D * K
 
@@ -133,18 +133,19 @@ class LDA_VI:
             for k in range(self.K):
                 # update term 1
                 tmp = self.lam_E[:,k] * self.phi[:,k]
-                ndw_vec = np.zeros(self.V) # V * 1
-                ndw_vec[ndw] += self.X[d,ndw]
-                term1 += (tmp * ndw_vec).sum()
+                # ndw_vec = np.zeros(self.V) # V * 1
+                # ndw_vec[ndw] += self.X[d,ndw]
+
+                term1 += (tmp * ndw).sum()
 
                 # update term 2
-                tmp = (ndw_vec * self.phi[:,k]).sum() # sum of V * 1 numpy arrays: scalar
+                tmp = (ndw * self.phi[:,k]).sum() # sum of V * 1 numpy arrays: scalar
                 E_theta_dk = self.gam_E[d,k] # scalar
                 term2 += E_theta_dk * tmp # scalar * scalar = scalar
 
                 # update term 3
                 tmp = self.phi[:,k] * log(self.phi[:,k] + 0.000000001)
-                term3 += (tmp * ndw_vec).sum()
+                term3 += (tmp * ndw).sum()
 
 
 
@@ -214,7 +215,7 @@ class LDA_VI:
         ids = np.nonzero(self.X[d,:])[0]
         n_dw = self.X[d,:][ids] # ids*1
         phi_dwk = self.phi[ids,:] # ids*K
-        gam_d = gam_d + np.dot(n_dw, phi_dwk) # K*1 + scalar
+        gam_d = gam_d + np.dot(n_dw, phi_dwk) # K*1 + K*1
 
         self.gam[d,:] = gam_d
         self.gam_E[d, :] = self._E_dir_1d(self.gam[d, :])
