@@ -16,31 +16,31 @@ from online_lda import LDA_VI
 
 
 
-# # load lda model
-# model = pickle.load(open('lda_model.pickle','rb'))
+# load lda model
+model = pickle.load(open('lda_model.pickle','rb'))
+
+pd.DataFrame(model.gam).to_csv('gamma.csv', index=False)
+pd.DataFrame(model.lam).to_csv('lambda.csv', index=False)
+pd.DataFrame(model.phi).to_csv('phi.csv', index=False)
+
+# see word_topic distribution
+lda_lam = [model.lam[:,k] for k in range(10)]
+def print_top_words(lam, feature_names, n_top_words):
+    for topic_id, topic in enumerate(lam):
+        print('\nTopic Nr.%d:' % int(topic_id + 1))
+        print(''.join([feature_names[i] + ' ' + str(round(topic[i], 2))
+                       + ' | ' for i in topic.argsort()[:-n_top_words - 1:-1]]))
+print_top_words(lda_lam, list(model.cv.get_feature_names()), 200)
+print(model.perplexity)
+print(model._ELBO_history)
+
+
+# a = np.array(range(3))
+# b = np.array(range(5))
+# print(a)
+# print(b)
+# print(np.outer(a,b))
 #
-# pd.DataFrame(model.gam).to_csv('gamma.csv', index=False)
-# pd.DataFrame(model.lam).to_csv('lambda.csv', index=False)
-# pd.DataFrame(model.phi).to_csv('phi.csv', index=False)
-#
-# # see word_topic distribution
-# lda_lam = [model.lam[:,k] for k in range(10)]
-# def print_top_words(lam, feature_names, n_top_words):
-#     for topic_id, topic in enumerate(lam):
-#         print('\nTopic Nr.%d:' % int(topic_id + 1))
-#         print(''.join([feature_names[i] + ' ' + str(round(topic[i], 2))
-#                        + ' | ' for i in topic.argsort()[:-n_top_words - 1:-1]]))
-# print_top_words(lda_lam, list(model.cv.get_feature_names()), 200)
-# print(model.perplexity)
-# print(model._ELBO_history)
-
-
-a = np.array(range(3))
-b = np.array(range(5))
-print(a)
-print(b)
-print(np.outer(a,b))
-
-for i in np.outer(a,b):
-    print('시작')
-    print(i)
+# for i in np.outer(a,b):
+#     print('시작')
+#     print(i)
