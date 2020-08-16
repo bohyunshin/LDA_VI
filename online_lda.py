@@ -50,8 +50,13 @@ class LDA_VI:
         self.D = len(self.data)
         self.Nd = [len(doc) for doc in self.data]
 
-        # set initial value for free variational parameters
-        self.phi = np.ones((self.V, self.K)) # dimension: for topic d, Nd * K
+        # # set initial value for free variational parameters
+        # self.phi = np.ones((self.V, self.K)) # dimension: for topic d, Nd * K
+
+        # set initial phi: different for each document
+        self.phi = {}
+        for d in range(self.D):
+            self.phi[d] = np.ones((self.V, self.K))
 
         # initialize variational parameters of dirichlet through gamma distribution
         np.random.seed(1)
@@ -132,19 +137,19 @@ class LDA_VI:
             ndw = self.X[d,:]
             for k in range(self.K):
                 # update term 1
-                tmp = self.lam_E[:,k] * self.phi[:,k]
+                tmp = self.lam_E[:,k] * self.phi[d][:,k]
                 # ndw_vec = np.zeros(self.V) # V * 1
                 # ndw_vec[ndw] += self.X[d,ndw]
 
                 term1 += (tmp * ndw).sum()
 
                 # update term 2
-                tmp = (ndw * self.phi[:,k]).sum() # sum of V * 1 numpy arrays: scalar
+                tmp = (ndw * self.phi[d][:,k]).sum() # sum of V * 1 numpy arrays: scalar
                 E_theta_dk = self.gam_E[d,k] # scalar
                 term2 += E_theta_dk * tmp # scalar * scalar = scalar
 
                 # update term 3
-                tmp = self.phi[:,k] * log(self.phi[:,k] + 0.000000001)
+                tmp = self.phi[d][:,k] * log(self.phi[d][:,k] + 0.000000001)
                 term3 += (tmp * ndw).sum()
 
 
@@ -201,20 +206,20 @@ class LDA_VI:
         for k in range(self.K):
             E_beta = self.lam_E[Nd_index,k] # Nd * 1: indexing for words in dth document
             E_theta = self.gam_E[d,k] # scalar: indexing for kth topic
-            self.phi[Nd_index,k] = E_beta + E_theta # Nd * 1
+            self.phi[d][Nd_index,k] = E_beta + E_theta # Nd * 1
         ## vectorize to reduce time
         # to prevent overfloat
         #self.phi -= self.phi.min(axis=1)[:,None]
-        self.phi[Nd_index,:] = exp(self.phi[Nd_index,:])
+        self.phi[d][Nd_index,:] = exp(self.phi[d][Nd_index,:])
         # normalize prob
-        self.phi[Nd_index,:] /= np.sum(self.phi[Nd_index,:], axis=1)[:,None]
+        self.phi[d][Nd_index,:] /= np.sum(self.phi[d][Nd_index,:], axis=1)[:,None]
         # print(None)
 
     def _update_gam(self,d):
         gam_d = np.repeat(self.alpha, self.K)
         ids = np.nonzero(self.X[d,:])[0]
         n_dw = self.X[d,:][ids] # ids*1
-        phi_dwk = self.phi[ids,:] # ids*K
+        phi_dwk = self.phi[d][ids,:] # ids*K
         gam_d = gam_d + np.dot(n_dw, phi_dwk) # K*1 + K*1
 
         self.gam[d,:] = gam_d
@@ -222,9 +227,14 @@ class LDA_VI:
 
 
     def _update_lam(self):
-        for k in range(self.K):
-            lam_k = np.sum(self.X, axis=0) * self.phi[:,k] + self.eta
-            self.lam[:,k] = lam_k
+        # for k in range(self.K):
+        #     lam_k = np.sum(self.X, axis=0) * self.phi[d][:,k] + self.eta
+        #     self.lam[:,k] = lam_k
+        self.lam = np.zeros((self.V, self.K))
+        for d in range(self.D):
+            self.lam += self.X[d,:][:,None] * self.phi[d]
+        self.lam += self.eta
+
         # update lambda dirichlet expectation
         self._update_lam_E_dir()
 
