@@ -1,6 +1,7 @@
 import numpy as np
 from numpy import exp, log
-from scipy.special import digamma, gamma, loggamma
+from scipy.special import digamma, gamma, loggamma, polygamma, logsumexp
+from math import pi
 from collections import Counter, OrderedDict
 import pickle
 import time
@@ -9,8 +10,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 EPS = np.finfo(np.float).eps
 
-class LDA_VI:
-    def __init__(self, path_data, alpha, m, delta,  K, sampling):
+class SAGE_VI:
+    def __init__(self, path_data, alpha, delta,  K, sampling):
         # loading data
         self.data = pickle.load(open(path_data, 'rb'))
         if sampling:
@@ -18,7 +19,6 @@ class LDA_VI:
             idx = np.random.choice(len(self.data), 1000, replace=False)
             self.data = [j for i, j in enumerate(self.data) if i in idx]
         self.alpha = alpha # hyperparameter; dimension: T * 1 but assume symmetric prior
-        self.m = m  # background distribution; dimension: V * 1
         self.delta = delta # hyperparameter for exponential distribution
         self.K = K
         self.perplexity = []
@@ -45,6 +45,8 @@ class LDA_VI:
         q(theta_d): Dir(gamma_d)
         q(tau_ki): Gamma(a,b)
 
+        ## eta will be updated by newtons method
+
         <latent variables>
         z_dn
         theta_d
@@ -54,6 +56,7 @@ class LDA_VI:
         self.V = len(self.w2idx)
         self.D = len(self.data)
         self.Nd = [len(doc) for doc in self.data]
+        self.m = np.zeros(self.V)
 
         # # set initial value for free variational parameters
         # self.phi = np.ones((self.V, self.K)) # dimension: for topic d, Nd * K
@@ -64,7 +67,7 @@ class LDA_VI:
         # initialize phi: different for each document (variational parameters for z_dn)
         self.phi = {}
         for d in range(self.D):
-            self.phi[d] = np.ones((self.V, self.K))
+            self.phi[d] = np.zeros((self.V, self.K))
         # initialize gamma (variational parameters for theta)
         np.random.seed(1)
         self.gam = np.random.gamma(100, 1/100, (self.D, self.K)) # dimension: D * K
@@ -76,7 +79,12 @@ class LDA_VI:
 
         # initialize latent eta parameters
         np.random.seed(4)
-        self.eta = np.random.gamma(100, 1/100, (self.V, self.K))
+        self.eta = np.random.gamma(10,1/1000, (self.V, self.K))
+
+        # initialize c_k, C_k, beta_k
+        self._cal_small_c_k()
+        self._cal_large_C_k()
+        self._cal_beta()
 
         # initialize dirichlet expectation to reduce computation time
         self._update_gam_E_dir()
@@ -87,8 +95,9 @@ class LDA_VI:
         term3 = 0 # E[ log q(z) ]
         term4 = 0 # E[ log p( theta | alpha) ]
         term5 = 0 # E[ log q( theta ) ]
-        term6 = 0 # E[ log p(beta | eta) ]
-        term7 = 0 # E[ log q(beta) ]
+        term6 = 0 # E[ log p(eta | tau) ]
+        term7 = 0 # E[ log p(tau | delta) ]
+        term8 = 0 # E[ log q(tau) ]
 
         '''
         ELBO is calculated w.r.t. each document
@@ -104,7 +113,7 @@ class LDA_VI:
             ndw = self.X[d,:]
             for k in range(self.K):
                 # update term 1
-                tmp = self.lam_E[:,k] * self.phi[d][:,k]
+                tmp = self.eta[:,k] * self.phi[d][:,k]
                 # ndw_vec = np.zeros(self.V) # V * 1
                 # ndw_vec[ndw] += self.X[d,ndw]
 
@@ -116,7 +125,7 @@ class LDA_VI:
                 term2 += E_theta_dk * tmp # scalar * scalar = scalar
 
                 # update term 3
-                tmp = self.phi[d][:,k] * log(self.phi[d][:,k] + 0.000000001)
+                tmp = self.phi[d][:,k] * log(self.phi[d][:,k] + 0.000000001) # for numerical stability
                 term3 += (tmp * ndw).sum()
 
 
@@ -134,16 +143,22 @@ class LDA_VI:
 
 
         for k in range(self.K):
+            a_k = self.a[:,k]
+            b_k = self.b[:,k]
             # update term 6
-            term6 += loggamma(self.V * self.eta) - log(self.V * gamma(self.eta))
-            term6 +=  (self.eta-1) * self.lam_E[:,k].sum()
+            term6 += -self.V/2 * np.log(2*pi) - np.log( np.prod( a_k * b_k ) )/2
+            term6 += -np.dot(self.eta[:,k], 1 / ((a_k-1) * b_k), self.eta[:,k] )/2
 
             # update term 7
-            term7 += loggamma(sum( self.lam[:,k] )) - sum( loggamma(self.lam[:,k]) )
-            term7 += ( ( self.lam[:,k]-1 ) * ( self.lam_E[:,k] ) ).sum()
+            term7 += ( np.log(self.delta) - a_k * b_k * self.delta ).sum()
+
+            # update term 8
+            term8 += ( (a_k-1) * (digamma(a_k) + np.log(b_k)) - a_k - loggamma(a_k) - a_k * np.log(b_k) ).sum()
+
+
         print('Done term 6, 7')
 
-        return term1 + term2 - term3 + term4 - term5 + term6 - term7
+        return term1 + term2 - term3 + term4 - term5 + term6 + term7 - term8
 
     def _E_dir(self, params_mat):
         '''
@@ -157,9 +172,6 @@ class LDA_VI:
 
     def _update_gam_E_dir(self):
         self.gam_E = self._E_dir(self.gam.transpose()).transpose()
-
-    def _update_lam_E_dir(self):
-        self.lam_E = self._E_dir(self.lam.transpose()).transpose()
 
     def _cal_exp_prob(self, k, Nd_index):
         eta_k = np.exp(self.eta[Nd_index,k] + self.m)
@@ -175,11 +187,14 @@ class LDA_VI:
         self.C_k = np.sum(self.c_k, axis=0) # dimension: K * 1
 
     def _cal_beta(self):
-        numerator = self.eta + self.m[:,None] # dimension: V * K
-        normalizer = np.sum(numerator, axis=0) # dimension: 1 * K
-        self.beta = numerator / normalizer[None,:]
+        # initialize beta (exponential probabilites)
+        numerator = self.eta + self.m[:, None]  # dimension: V * K
+        numerator = np.exp(numerator)
+        numerator -= np.min(numerator, axis=0)
+        normalizer = np.sum(numerator, axis=0)  # dimension: 1 * K
+        self.beta = numerator / normalizer[None, :]
 
-    def _simple_newtons(self, x0, delta, tol, multivariate=False):
+    def _simple_newtons(self, x0, delta, tol, max_iter, multivariate=False):
         x1 = x0 - delta
         if multivariate:
             while sum(abs(x1 - x0)) > tol:
@@ -192,7 +207,6 @@ class LDA_VI:
         return x1
 
 
-
     def _update_phi(self, d):
         # duplicated words are ignored
         Nd_index = np.nonzero(self.X[d,:])[0]
@@ -202,13 +216,13 @@ class LDA_VI:
 
 
         for k in range(self.K):
-            prob_eta = self._cal_exp_prob(k, Nd_index) # Nd * 1: indexing for words in dth document
+            prob_beta = self.beta[Nd_index, k]# Nd * 1: indexing for words in dth document
             E_theta = np.exp(self.gam_E[d,k]) # scalar: indexing for kth topic
-            self.phi[d][Nd_index,k] = prob_eta * E_theta # Nd * 1
+            self.phi[d][Nd_index,k] = prob_beta * E_theta # Nd * 1
         ## vectorize to reduce time
         # to prevent overfloat
         #self.phi -= self.phi.min(axis=1)[:,None]
-        self.phi[d][Nd_index,:] = exp(self.phi[d][Nd_index,:])
+        #self.phi[d][Nd_index,:] = exp(self.phi[d][Nd_index,:])
         # normalize prob
         self.phi[d][Nd_index,:] /= np.sum(self.phi[d][Nd_index,:], axis=1)[:,None]
         # print(None)
@@ -225,23 +239,81 @@ class LDA_VI:
 
 
     def _update_eta(self):
+        # Assume small c_k and large C_k are already updated.
         for k in range(self.K):
-            beta_k = self.beta[:,k]
-            u = self.C_k[k] * np.outer(beta_k, beta_k) # K*K
-            v = self.beta[:,k]                         # K*1
-            E_tau_inv = 1/((self.a[:,k]-1) * self.b[:,k]) # K*1
-            A = -np.diag( self.C_k[k] * beta_k + E_tau_inv) # K*K
-            A_inv = np.linalg.inv(A)
 
-            grad_k = self.c_k[:,k] - self.C_k[k] * self.beta[:,k] - E_tau_inv * self.eta[:,k]
+            # u = self.C_k[k] * np.outer(beta_k, beta_k) # K*K
+            # v = self.beta[:,k]                         # K*1
             # Hessian_k = np.outer(u,v) + A
             # Hessian_k_inverse = A_inv - self.C_k[k] * np.dot(A_inv, np.outer(beta_k, beta_k), A_inv ) \
             #                     / 1 + self.C_k[k] * np.dot(beta_k, A_inv, beta_k)
 
-            delta_eta_k = -np.dot(A_inv, grad_k) + self.C_k[k] * np.dot( np.dot(A_inv, beta_k),
-                                                np.dot(beta_k, np.dot(A_inv, grad_k))) \
-                                                (1 + self.C_k[k] * np.dot(beta_k, A_inv, beta_k))
-            self._simple_newtons(np.random.gamma(100,1/100,(self.K,1)), delta_eta_k, tol=0.001)
+            E_tau_inv = 1 / ((self.a[:, k] - 1) * self.b[:, k])  # K*1
+
+            eta0 = np.random.gamma(10,1/100,(self.V,))
+            eta1 = np.random.gamma(1,1/10000000,(self.V,))
+            tol = 0.01
+
+            # Newtons optimization
+            while sum(abs(eta1 - eta0)) / self.V > tol:
+                eta0 = eta1
+                numerator = eta0 + self.m
+                #numerator -= np.min(numerator)
+                numerator = np.exp(numerator)
+                normalizer = np.sum(numerator)
+                # numerator = eta0 + self.m
+                # normalizer = np.exp(logsumexp(numerator))
+                beta_k = numerator / normalizer
+
+                diag_element = - (self.C_k[k] * beta_k + E_tau_inv)
+                # A = np.diag(diag_element) # K*K
+                tmp = beta_k / diag_element
+
+
+                # A_inv = np.diag(1 / diag_element)
+                # tmp = np.dot(A_inv, beta_k)
+
+                grad_k = self.c_k[:,k] - self.C_k[k] * beta_k - E_tau_inv * eta0
+
+                tmp2 = grad_k / diag_element
+                a = 1
+                # delta without minus
+                delta_eta_k = -tmp2 + self.C_k[k] * np.dot( tmp,
+                                                    np.dot(beta_k, tmp2)) \
+                                                   / (1 + self.C_k[k] * np.dot(beta_k, tmp))
+
+                eta1 = eta0 - delta_eta_k
+
+            self.eta[:,k] = eta1
+            print(f'finished {k}th topic in eta')
+
+    def _update_a(self, max_iter):
+        for k in range(self.K):
+            for w in range(self.V):
+                b = self.b[w,k]
+                eta = self.eta[w,k]
+
+                a0 = 2
+                a1 = 1
+                tol = 0.001
+                # Newtons optimization
+                while abs(a1 - a0) > tol:
+                    a0 = a1
+                    numerator = -polygamma(1,a0) * (a0-1/2) + eta**2 / (2*b*(a0-1)**2) - b*self.delta + 1
+                    denominator = polygamma(2,a0) * (a0-1/2) + polygamma(1,a0) + eta**2 / (b*(a0-1)**3)
+                    # this delta is without minus
+                    delta = numerator / denominator
+                    a1 = a0 - delta
+                self.a[w,k] = a1
+            print(f'finished {k}th topic in a')
+
+    def _update_b(self):
+        for k in range(self.K):
+            eta_k = self.eta[:,k]
+            a_k = self.a[:,k]
+            numerator = 1+ np.sqrt(1 + 8*self.delta * np.power(eta_k, 2) * a_k / (a_k - 1)) # K*1
+            denominator = 4*self.delta*a_k                                                  # K*1
+            self.b[:,k] = numerator / denominator
 
     def train(self, threshold, max_iter):
 
@@ -280,9 +352,18 @@ class LDA_VI:
                     self._update_gam(d)
                     gam_after = self.gam[d,:]
 
+            # update small c_k, large C_k
+            self._cal_small_c_k()
+            self._cal_large_C_k()
+
             # update beta_star
-            print('M step: Updating lambda..')
-            self._update_lam()
+            print('M step: Updating eta..')
+            self._update_eta()
+            self._update_a(max_iter=1000)
+            self._update_b()
+
+            # update exponential probabilities
+            self._cal_beta()
             print('Finished Iteration!')
             print('\n')
 

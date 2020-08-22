@@ -8,9 +8,13 @@
 # print(hessian)
 
 import numpy as np
+import pickle
+from SAGE_VI import SAGE_VI
+dir = "/Users/shinbo/Desktop/metting/LDA/0. data/20news-bydate/newsgroup_preprocessed.pickle"
+sage = SAGE_VI(dir,5,0.1,10,True)
+sage.train(0.01, 100)
+pickle.dump(sage,open('sage_model.pickle', 'wb'))
 
-a = np.array([1,2])
-b = np.array(range(4)).reshape((2,2))
-print(np.outer(a,a))
 
-print(np.dot(b,b,b))
+a = np.array([1,2,3], dtype='float64')
+print(np.power(a,-1))
