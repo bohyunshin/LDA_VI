@@ -73,9 +73,9 @@ class SAGE_VI:
         self.gam = np.random.gamma(100, 1/100, (self.D, self.K)) # dimension: D * K
         # initialize a,b (variational parameters for tau)
         np.random.seed(2)
-        self.a = np.random.gamma(100, 1 / 100, (self.V, self.K)) # dimension: V * K
+        self.a = np.random.gamma(5, 1, (self.V, self.K)) # dimension: V * K
         np.random.seed(3)
-        self.b = np.random.gamma(100, 1 / 100, (self.V, self.K))  # dimension: V * K
+        self.b = np.random.gamma(1, 1, (self.V, self.K))  # dimension: V * K
 
         # initialize latent eta parameters
         np.random.seed(4)
@@ -160,6 +160,14 @@ class SAGE_VI:
 
         return term1 + term2 - term3 + term4 - term5 + term6 + term7 - term8
 
+    def _eval_log_eta(self,k, eta_k):
+        term1 = 0
+        for d in range(self.D):
+            N = self.X[d,:] * self.phi[d][:,k] # dimension: V*1
+            term1 += np.dot(N, eta_k) # scalar
+        logexpsum = np.log( np.sum( np.exp(eta_k + self.m) ) )
+        E_tau_invs = 1 / ( (self.a[:,k]-1) * self.b[:,k] )
+        return term1 - self.C_k[k] * logexpsum - np.dot(E_tau_invs, np.power(eta_k, 2)) / 2
     def _E_dir(self, params_mat):
         '''
         input: vector parameters of dirichlet
@@ -240,6 +248,7 @@ class SAGE_VI:
 
     def _update_eta(self):
         # Assume small c_k and large C_k are already updated.
+        # Newton Armijo Update for eta_k
         for k in range(self.K):
 
             # u = self.C_k[k] * np.outer(beta_k, beta_k) # K*K
@@ -251,7 +260,7 @@ class SAGE_VI:
             E_tau_inv = 1 / ((self.a[:, k] - 1) * self.b[:, k])  # K*1
 
             eta0 = np.random.gamma(10,1/100,(self.V,))
-            eta1 = np.random.gamma(1,1/10000000,(self.V,))
+            eta1 = np.random.gamma(100,1/100,(self.V,))
             tol = 0.01
 
             # Newtons optimization
