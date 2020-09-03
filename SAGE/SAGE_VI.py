@@ -168,6 +168,7 @@ class SAGE_VI:
         logexpsum = np.log( np.sum( np.exp(eta_k + self.m) ) )
         E_tau_invs = 1 / ( (self.a[:,k]-1) * self.b[:,k] )
         return term1 - self.C_k[k] * logexpsum - np.dot(E_tau_invs, np.power(eta_k, 2)) / 2
+
     def _E_dir(self, params_mat):
         '''
         input: vector parameters of dirichlet
@@ -198,7 +199,7 @@ class SAGE_VI:
         # initialize beta (exponential probabilites)
         numerator = self.eta + self.m[:, None]  # dimension: V * K
         numerator = np.exp(numerator)
-        numerator -= np.min(numerator, axis=0)
+        # numerator -= np.min(numerator, axis=0)
         normalizer = np.sum(numerator, axis=0)  # dimension: 1 * K
         self.beta = numerator / normalizer[None, :]
 
@@ -246,9 +247,10 @@ class SAGE_VI:
         self.gam_E[d, :] = self._E_dir_1d(self.gam[d, :])
 
 
-    def _update_eta(self):
+    def _update_eta(self, beta, tau, init_alpha):
         # Assume small c_k and large C_k are already updated.
         # Newton Armijo Update for eta_k
+        alpha = init_alpha
         for k in range(self.K):
 
             # u = self.C_k[k] * np.outer(beta_k, beta_k) # K*K
@@ -260,12 +262,16 @@ class SAGE_VI:
             E_tau_inv = 1 / ((self.a[:, k] - 1) * self.b[:, k])  # K*1
 
             eta0 = np.random.gamma(10,1/100,(self.V,))
+            old_score = self._eval_log_eta(k, eta0)
             eta1 = np.random.gamma(100,1/100,(self.V,))
+            new_score = self._eval_log_eta(k, eta1)
             tol = 0.01
 
             # Newtons optimization
-            while sum(abs(eta1 - eta0)) / self.V > tol:
+            while abs(old_score - new_score) > tol:
                 eta0 = eta1
+                old_score = new_score
+
                 numerator = eta0 + self.m
                 #numerator -= np.min(numerator)
                 numerator = np.exp(numerator)
@@ -285,13 +291,24 @@ class SAGE_VI:
                 grad_k = self.c_k[:,k] - self.C_k[k] * beta_k - E_tau_inv * eta0
 
                 tmp2 = grad_k / diag_element
-                a = 1
-                # delta without minus
-                delta_eta_k = -tmp2 + self.C_k[k] * np.dot( tmp,
+                # delta with minus
+                step = tmp2 - self.C_k[k] * np.dot( tmp,
                                                     np.dot(beta_k, tmp2)) \
                                                    / (1 + self.C_k[k] * np.dot(beta_k, tmp))
 
-                eta1 = eta0 - delta_eta_k
+                new_score = self._eval_log_eta(k, eta0 + alpha*step)
+
+                # do armijo linear-search to find optimized step size, alpha
+                while new_score > old_score + beta * alpha * np.dot(grad_k, step):
+                    alpha = alpha*tau
+                    new_score = self._eval_log_eta(k, eta0 + alpha*step)
+
+                # optimize eta with adjusted step size alpha
+                eta1 = eta0 + alpha*step
+                alpha = 1 # walk back one step
+
+
+
 
             self.eta[:,k] = eta1
             print(f'finished {k}th topic in eta')
@@ -364,15 +381,16 @@ class SAGE_VI:
             # update small c_k, large C_k
             self._cal_small_c_k()
             self._cal_large_C_k()
+            self._cal_beta()
 
             # update beta_star
             print('M step: Updating eta..')
-            self._update_eta()
+            self._update_eta(beta=1e-4, tau=0.25, init_alpha=1)
             self._update_a(max_iter=1000)
             self._update_b()
 
             # update exponential probabilities
-            self._cal_beta()
+
             print('Finished Iteration!')
             print('\n')
 

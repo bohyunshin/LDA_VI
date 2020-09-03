@@ -16,5 +16,6 @@ import numpy as np
 # pickle.dump(sage,open('sage_model.pickle', 'wb'))
 
 
-a = np.array([1,2,3], dtype='float64')
-print(np.power(a,2))
+a = np.array(range(1,4))[:,None]
+b = np.ones((3,4))
+print(a * b)
