@@ -10,15 +10,17 @@ from sklearn.feature_extraction.text import CountVectorizer
 EPS = np.finfo(np.float).eps
 
 class CLDA_VI:
-    def __init__(self, path_data, alpha, eta_not_seed, eta_seed,  K, seed_words):
+    def __init__(self, path_data, alpha, eta, eta_not_seed, eta_seed,  K, seed_words, sampling):
         # loading data
         self.data = pickle.load(open(path_data, 'rb'))
-        np.random.seed(0)
-        idx = np.random.choice(len(self.data), 1000, replace=False)
-        self.data = [j for i, j in enumerate(self.data) if i in idx]
+        if sampling:
+            np.random.seed(0)
+            idx = np.random.choice(len(self.data), 1000, replace=False)
+            self.data = [j for i, j in enumerate(self.data) if i in idx]
         self.alpha = alpha # hyperparameter; dimension: T * 1 but assume symmetric prior
         self.eta_not_seed = eta_not_seed
         self.eta_seed = eta_seed
+        self.eta_ordinary = eta
         self.K = K
         self.perplexity = []
         self.seed_words = seed_words
@@ -63,8 +65,16 @@ class CLDA_VI:
         self.Nd = [len(doc) for doc in self.data]
 
         # make asseymmetric prior for word-topic distribution
-        self.eta = np.repeat(self.eta_not_seed, self.V)
-        self.eta[ np.array(self.seed_word_index) ] = self.eta_seed
+        # different by each topic
+        self.eta = self.eta_ordinary * np.ones((self.V, self.K))
+        for k in range(self.K):
+            setdiff_index = np.array(list(set(range(self.K)) - set([k])))
+            key = list(self.seed_words.keys())[k]
+            not_key = [key for i, key in enumerate(list(self.seed_words.keys())) if i in setdiff_index ]
+            self.eta[np.array(self.seed_words[key]),k] =  self.eta_seed
+
+            for kk in not_key:
+                self.eta[np.array(self.seed_words[kk]), k] = self.eta_not_seed
 
         # # set initial value for free variational parameters
         # self.phi = np.ones((self.V, self.K)) # dimension: for topic d, Nd * K
@@ -184,8 +194,8 @@ class CLDA_VI:
 
         for k in range(self.K):
             # update term 6
-            term6 += loggamma(self.eta.sum()) - log(gamma(self.eta).sum())
-            term6 +=  ((self.eta-1) * self.lam_E[:,k]).sum()
+            term6 += loggamma(self.eta[:,k].sum()) - log(gamma(self.eta[:,k]).sum())
+            term6 +=  ((self.eta[:,k]-1) * self.lam_E[:,k]).sum()
 
             # update term 7
             term7 += loggamma(sum( self.lam[:,k] )) - sum( loggamma(self.lam[:,k]) )
@@ -249,7 +259,7 @@ class CLDA_VI:
         self.lam = np.zeros((self.V, self.K))
         for d in range(self.D):
             self.lam += self.X[d,:][:,None] * self.phi[d]
-        self.lam += self.eta[:,None]
+        self.lam += self.eta
 
         # update lambda dirichlet expectation
         self._update_lam_E_dir()
