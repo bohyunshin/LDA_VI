@@ -5,7 +5,7 @@ from numpy import exp, log
 from scipy.special import gamma, digamma, polygamma
 import pickle
 import time
-from clda import CLDA_VI
+from naive_clda import CLDA_VI
 from online_lda import LDA_VI
 
 
@@ -27,7 +27,7 @@ seed_words_dict['food'] = ['food', 'coffee','water','beverage','breakfast','lunc
 seed_words_dict['accomodation'] = ['room','bathroom','lobby','hotel','stay','elevator','towel','balcony',
                                     'location','far','close','front','stay']
 
-lda = CLDA_VI(dir, 5, 0.1, 4, seed_words_dict)
+lda = CLDA_VI(dir, 5, 0.1, 0.000001, 100, 4, seed_words_dict, sampling=True)
 lda.train(threshold=.01, max_iter=1000)
 pickle.dump(lda, open('clda_model.pickle', 'wb'))
 pickle.dump(lda, open('lda_model.pickle', 'wb'))

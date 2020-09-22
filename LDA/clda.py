@@ -126,6 +126,8 @@ class CLDA_VI:
             self.kappa['b=1'][d] = self.kappa['b=1'][d] / (self.kappa['b=1'][d] + self.kappa['b=0'][d])
             self.kappa['b=0'][d] = self.kappa['b=0'][d] / (self.kappa['b=1'][d] + self.kappa['b=0'][d])
 
+        print('hello world!')
+
 
     def _ELBO(self):
         term1 = 0 # E[ log p( w | phi, z) ]
@@ -173,16 +175,13 @@ class CLDA_VI:
 
                 # update term 4
                 kap = self.kappa['b=1'][d][:,k]
-                if np.log(kap)==0:
-                    print(kap)
-                    print(kap)
                 E_log_nu = self.nu_E[1][d][:,k]
                 E_log_one_minus_nu = self.nu_E[2][d][:,k]
                 tmp = kap*E_log_nu + (1-kap)*E_log_one_minus_nu
                 term4 += (tmp * ndw).sum()
 
                 # update term 5
-                tmp = kap*np.log(kap) + (1-kap)*np.log(1-kap)
+                tmp = kap*np.log(kap + EPS) + (1-kap)*np.log(1-kap + EPS)
                 term5 += (tmp * ndw).sum()
 
                 # update term 6
