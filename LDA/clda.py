@@ -77,20 +77,23 @@ class CLDA_VI:
 
 
         # imposing skewed prior
-        # noninformative prior (uniform)
+        # noninformative prior (uniform) on 'not' seed words
+        # informative prior for seed words
         temp_alpha = np.repeat(1, self.V * self.K).reshape(self.V, self.K)
         temp_beta = np.repeat(1, self.V * self.K).reshape(self.V, self.K)
 
         for k, key in enumerate(list(self.seed_words.keys())):
             seed_words_index = np.array(self.seed_words[key])
-            temp_alpha[seed_words_index,k] = 50
-            temp_beta[seed_words_index, k] = 2
+            # imposing Beta(50,2) prior for seed words (spike at 1)
+            temp_alpha[seed_words_index,k] = 20
+            temp_beta[seed_words_index, k] = 3
 
             other_key = list(set(list(self.seed_words.keys())) - set([key]))
             for kk in other_key:
                 not_seed_words_index = np.array(self.seed_words[kk])
-                temp_alpha[not_seed_words_index,k] = 2
-                temp_beta[not_seed_words_index, k] = 50
+                # imposing Beta(2,50) prior for 'not' seed words (spike at 0)
+                temp_alpha[not_seed_words_index,k] = 3
+                temp_beta[not_seed_words_index, k] = 20
         for d in range(self.D):
                 self.pi[1][d] = temp_alpha
                 self.pi[2][d] = temp_beta
@@ -117,8 +120,8 @@ class CLDA_VI:
 
         # initialize kappa using phi, expectation of nu, beta
         for d in range(self.D):
-            self.kappa['b=1'][d] = np.exp(self.phi[d] * self.lam_E + self.delta[1][d]) # W*K Dimension
-            self.kappa['b=0'][d] = np.exp(self.phi[d] * self.lam_E + self.delta[2][d])
+            self.kappa['b=1'][d] = np.exp(self.phi[d] * self.lam_E + self.nu_E[1][d]) # W*K Dimension
+            self.kappa['b=0'][d] = np.exp(self.phi[d] * self.lam_E + self.nu_E[2][d])
 
             self.kappa['b=1'][d] = self.kappa['b=1'][d] / (self.kappa['b=1'][d] + self.kappa['b=0'][d])
             self.kappa['b=0'][d] = self.kappa['b=0'][d] / (self.kappa['b=1'][d] + self.kappa['b=0'][d])
@@ -170,8 +173,11 @@ class CLDA_VI:
 
                 # update term 4
                 kap = self.kappa['b=1'][d][:,k]
-                E_log_nu = self.nu_E[1][:,k]
-                E_log_one_minus_nu = self.nu_E[2][:,k]
+                if np.log(kap)==0:
+                    print(kap)
+                    print(kap)
+                E_log_nu = self.nu_E[1][d][:,k]
+                E_log_one_minus_nu = self.nu_E[2][d][:,k]
                 tmp = kap*E_log_nu + (1-kap)*E_log_one_minus_nu
                 term4 += (tmp * ndw).sum()
 
@@ -180,14 +186,14 @@ class CLDA_VI:
                 term5 += (tmp * ndw).sum()
 
                 # update term 6
-                first = (self.pi[1][d][:,k] - 1) * (self.nu_E[1][d][:k])
-                second = (self.pi[2][d][:,k] - 1) * (self.nu_E[2][d][:k])
+                first = (self.pi[1][d][:,k] - 1) * (self.nu_E[1][d][:,k])
+                second = (self.pi[2][d][:,k] - 1) * (self.nu_E[2][d][:,k])
                 tmp = first + second
                 term6 += (tmp*ndw).sum()
 
                 # update term 7
-                first = (self.delta[1][d][:, k] - 1) * (self.nu_E[1][d][:k])
-                second = (self.delta[2][d][:, k] - 1) * (self.nu_E[2][d][:k])
+                first = (self.delta[1][d][:, k] - 1) * (self.nu_E[1][d][:,k])
+                second = (self.delta[2][d][:, k] - 1) * (self.nu_E[2][d][:,k])
 
                 tmp = log(
                     gamma(self.delta[1][d][:,k] + self.delta[2][d][:,k]) / \
@@ -218,7 +224,7 @@ class CLDA_VI:
             term11 += ( ( self.lam[:,k]-1 ) * ( self.lam_E[:,k] ) ).sum()
         print('Done term 10, 11')
 
-        return term1 + term2 - term3 + term4 - term5 + term6 - term7 + term8 - term9
+        return term1 + term2 - term3 + term4 - term5 + term6 - term7 + term8 - term9 + term10 - term11
 
     def _E_dir(self, params_mat):
         '''
@@ -242,8 +248,8 @@ class CLDA_VI:
         self.nu_E[2] = {}
 
         for d in range(self.D):
-            self.nu_E[1][d] = self._E_dir(self.delta[1][d].granspose()).transpose()
-            self.nu_E[2][d] = self._E_dir(self.delta[2][d].granspose()).transpose()
+            self.nu_E[1][d] = self._E_dir(self.delta[1][d].transpose()).transpose()
+            self.nu_E[2][d] = self._E_dir(self.delta[2][d].transpose()).transpose()
 
 
     def _update_phi(self, d):
@@ -267,8 +273,8 @@ class CLDA_VI:
         # print(None)
 
     def _update_kappa(self, d):
-        self.kappa['b=1'][d] = np.exp(self.phi[d] * self.lam_E + self.delta[1][d])  # W*K Dimension
-        self.kappa['b=0'][d] = np.exp(self.phi[d] * self.lam_E + self.delta[2][d])
+        self.kappa['b=1'][d] = np.exp(self.phi[d] * self.lam_E + self.nu_E[1][d])  # W*K Dimension
+        self.kappa['b=0'][d] = np.exp(self.phi[d] * self.lam_E + self.nu_E[2][d])
 
         self.kappa['b=1'][d] = self.kappa['b=1'][d] / (self.kappa['b=1'][d] + self.kappa['b=0'][d])
         self.kappa['b=0'][d] = self.kappa['b=0'][d] / (self.kappa['b=1'][d] + self.kappa['b=0'][d])
