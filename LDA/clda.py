@@ -247,8 +247,9 @@ class CLDA_VI:
         self.nu_E[2] = {}
 
         for d in range(self.D):
-            self.nu_E[1][d] = self._E_dir(self.delta[1][d].transpose()).transpose()
-            self.nu_E[2][d] = self._E_dir(self.delta[2][d].transpose()).transpose()
+            sum_delta = self.delta[1][d] + self.delta[2][d]
+            self.nu_E[1][d] = digamma(self.delta[1][d]) - digamma(sum_delta)
+            self.nu_E[2][d] = digamma(self.delta[2][d]) - digamma(sum_delta)
 
 
     def _update_phi(self, d):
@@ -282,6 +283,10 @@ class CLDA_VI:
         self.delta[1][d] = self.kappa['b=1'][d] + self.pi[1][d]
         self.delta[2][d] = self.kappa['b=0'][d] + self.pi[2][d]
 
+        sum_delta = self.delta[1][d] + self.delta[2][d]
+        self.nu_E[1][d] = digamma(self.delta[1][d]) - digamma(sum_delta)
+        self.nu_E[2][d] = digamma(self.delta[2][d]) - digamma(sum_delta)
+
     def _update_gam(self,d):
         gam_d = np.repeat(self.alpha, self.K)
         ids = np.nonzero(self.X[d,:])[0]
@@ -313,7 +318,7 @@ class CLDA_VI:
         #     self.kappa['b=1'][d] = self.kappa['b=1'][d] / (self.kappa['b=1'][d] + self.kappa['b=0'][d])
         #     self.kappa['b=0'][d] = self.kappa['b=0'][d] / (self.kappa['b=1'][d] + self.kappa['b=0'][d])
 
-    def train(self, threshold, max_iter):
+    def train(self, threshold, max_iter, max_iter_doc):
 
         print('Making Vocabs...')
         self._make_vocab()
@@ -344,6 +349,8 @@ class CLDA_VI:
 
                 gam_before = self.gam[d,:]
                 gam_after = np.repeat(999,self.K)
+
+                a = 0
                 while sum(abs(gam_before - gam_after)) / self.K > threshold:
                     gam_before = gam_after
                     self._update_phi(d)
@@ -351,6 +358,9 @@ class CLDA_VI:
                     self._update_delta(d)
                     self._update_gam(d)
                     gam_after = self.gam[d,:]
+                    a += 1
+                    if a > max_iter_doc:
+                        break
 
             # update beta_star
             print('M step: Updating lambda..')

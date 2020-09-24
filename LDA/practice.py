@@ -5,32 +5,33 @@ from numpy import exp, log
 from scipy.special import gamma, digamma, polygamma
 import pickle
 import time
-from naive_clda import CLDA_VI
+from clda import CLDA_VI
 from online_lda import LDA_VI
 
 
 # #run my LDA model
-dir = "preprocessed_review.pickle"
+dir = "/Users/shinbo/Desktop/metting/LDA/0. data/20news-bydate/newsgroup_preprocessed_corpus.pickle"
 
 # set seed words
-seed_words_dict = dict()
-seed_words_dict['price'] = ["price",  "fee",  "cost", "value", "money", "pay",
-                             "expensive", "charge", "pricey",  "cheaper", "rate", "reasonably", "cheap"]
-seed_words_dict['service'] = ["staff", "helpful", "service", "friendly", "pool", "desk",
-                              "valet", "welcoming", "parking",  "offer", "manager",
-                               "service", "help", "courteous", "check", "towel",
-                              'serve']
-
-seed_words_dict['food'] = ['food', 'coffee','water','beverage','breakfast','lunch','dinner','tea',
-                           'fruit','starbucks','cafe', 'coconut','restaurant', 'drink']
-
-seed_words_dict['accomodation'] = ['room','bathroom','lobby','hotel','stay','elevator','towel','balcony',
-                                    'location','far','close','front','stay']
-
-lda = CLDA_VI(dir, 5, 0.1, 0.000001, 100, 4, seed_words_dict, sampling=True)
-lda.train(threshold=.01, max_iter=1000)
+# seed_words_dict = dict()
+# seed_words_dict['price'] = ["price",  "fee",  "cost", "value", "money", "pay",
+#                              "expensive", "charge", "pricey",  "cheaper", "rate", "reasonably", "cheap"]
+# seed_words_dict['service'] = ["staff", "helpful", "service", "friendly", "pool", "desk",
+#                               "valet", "welcoming", "parking",  "offer", "manager",
+#                                "service", "help", "courteous", "check", "towel",
+#                               'serve']
+#
+# seed_words_dict['food'] = ['food', 'coffee','water','beverage','breakfast','lunch','dinner','tea',
+#                            'fruit','starbucks','cafe', 'coconut','restaurant', 'drink']
+#
+# seed_words_dict['accomodation'] = ['room','bathroom','lobby','hotel','stay','elevator','towel','balcony',
+#                                     'location','far','close','front','stay']
+seed_words_dict = pickle.load(open('/Users/shinbo/Desktop/metting/LDA/0. data/20news-bydate/topics_top_words.pickle','rb'))
+K = len(seed_words_dict.keys())
+lda = CLDA_VI(dir, 5, 0.1, K, seed_words_dict)
+lda.train(threshold=.01, max_iter=1000, max_iter_doc=1000)
 pickle.dump(lda, open('clda_model.pickle', 'wb'))
-pickle.dump(lda, open('lda_model.pickle', 'wb'))
+# pickle.dump(lda, open('lda_model.pickle', 'wb'))
 
 # load lda model
 model = pickle.load(open('lda_model.pickle','rb'))
