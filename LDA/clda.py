@@ -10,12 +10,13 @@ from sklearn.feature_extraction.text import CountVectorizer
 EPS = np.finfo(np.float).eps
 
 class CLDA_VI:
-    def __init__(self, path_data, alpha, eta,  K, seed_words):
+    def __init__(self, path_data, alpha, eta,  K, seed_words, sampling):
         # loading data
         self.data = pickle.load(open(path_data, 'rb'))
-        np.random.seed(0)
-        idx = np.random.choice(len(self.data), 1000, replace=False)
-        self.data = [j for i, j in enumerate(self.data) if i in idx]
+        if sampling:
+            np.random.seed(0)
+            idx = np.random.choice(len(self.data), 1000, replace=False)
+            self.data = [j for i, j in enumerate(self.data) if i in idx]
         self.alpha = alpha # hyperparameter; dimension: T * 1 but assume symmetric prior
         self.eta = eta  # hyperparameter; dimension: M * 1 but assume symmetric prior
         self.seed_words = seed_words
