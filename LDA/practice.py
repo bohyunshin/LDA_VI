@@ -29,6 +29,7 @@ seed_words_dict['accomodation'] = ['room','bathroom','lobby','hotel','stay','ele
                                     'location','far','close','front','stay']
 # seed_words_dict = pickle.load(open('/Users/shinbo/Desktop/metting/LDA/0. data/20news-bydate/topics_top_words.pickle','rb'))
 K = len(seed_words_dict.keys())
+
 # lda = CLDA_VI(dir_, 5, 0.1, K, seed_words_dict, sampling=False)
 # lda.train(threshold=.01, max_iter=1000, max_iter_doc=1000)
 # pickle.dump(lda, open('clda_model.pickle', 'wb'))

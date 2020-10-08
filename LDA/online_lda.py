@@ -1,6 +1,7 @@
 import numpy as np
 from numpy import exp, log
 from scipy.special import digamma, gamma, loggamma
+from scipy.sparse import csr_matrix
 from collections import Counter, OrderedDict
 import pickle
 import time
@@ -30,7 +31,8 @@ class LDA_VI:
         # make DTM
         self.data_join = [' '.join(doc) for doc in self.data]
         self.cv = CountVectorizer()
-        self.X = self.cv.fit_transform(self.data_join).toarray()
+        # X is sparse matrix
+        self.X = self.cv.fit_transform(self.data_join)
         self.w2idx = self.cv.vocabulary_
         self.idx2w = {val: key for key, val in self.w2idx.items()}
 
@@ -56,7 +58,36 @@ class LDA_VI:
         # set initial phi: different for each document
         self.phi = {}
         for d in range(self.D):
-            self.phi[d] = np.ones((self.V, self.K))
+
+
+            word_nonzero_indices = sorted(self.X.indices[self.X.indptr[d] : self.X.indptr[d+1]])
+
+            index_minus = [word_nonzero_indices[i + 1] - word_nonzero_indices[i] - 1
+                           for i in range(len(word_nonzero_indices)) if i != len(word_nonzero_indices) - 1]
+            index_minus.append(0)
+
+            mat = csr_matrix((self.V, self.K))
+
+            indptr = [0]
+
+            for i, j in zip(word_nonzero_indices, index_minus):
+                indptr.append(indptr[-1] + 5)
+                indptr += list(np.repeat(indptr[-1], j))
+
+            begin_append = np.zeros(min(word_nonzero_indices), dtype=int)
+            end_append = np.zeros(self.V - max(word_nonzero_indices) - 1, dtype=int)
+
+            indptr = list(begin_append) + indptr + list(end_append)
+            data = np.ones(max(indptr))
+            indices = np.tile(range(self.K), len(word_nonzero_indices))
+
+            mat.indptr = np.array(indptr)
+            mat.indices = indices
+            mat.data = data
+
+            self.phi[d] = mat
+
+
 
         # initialize variational parameters of dirichlet through gamma distribution
         np.random.seed(1)
@@ -134,22 +165,22 @@ class LDA_VI:
         # update term 1, 2, 3, 4, 5
         for d in range(self.D):
 
-            ndw = self.X[d,:]
+            ndw = self.X.A[d,:]
             for k in range(self.K):
                 # update term 1
-                tmp = self.lam_E[:,k] * self.phi[d][:,k]
+                tmp = self.lam_E[:,k] * self.phi[d].A[:,k]
                 # ndw_vec = np.zeros(self.V) # V * 1
                 # ndw_vec[ndw] += self.X[d,ndw]
 
                 term1 += (tmp * ndw).sum()
 
                 # update term 2
-                tmp = (ndw * self.phi[d][:,k]).sum() # sum of V * 1 numpy arrays: scalar
+                tmp = (ndw * self.phi[d].A[:,k]).sum() # sum of V * 1 numpy arrays: scalar
                 E_theta_dk = self.gam_E[d,k] # scalar
                 term2 += E_theta_dk * tmp # scalar * scalar = scalar
 
                 # update term 3
-                tmp = self.phi[d][:,k] * log(self.phi[d][:,k] + 0.000000001)
+                tmp = self.phi[d].A[:,k] * log(self.phi[d].A[:,k] + 0.000000001)
                 term3 += (tmp * ndw).sum()
 
 
@@ -197,11 +228,10 @@ class LDA_VI:
 
     def _update_phi(self, d):
         # duplicated words are ignored
-        Nd_index = np.nonzero(self.X[d,:])[0]
+        Nd_index = np.nonzero(self.X.A[d,:])[0]
         # get the proportional value in each topic t,
         # and then normalize to make as probabilities
         # the indicator of Z_dn remains only one term
-
 
         for k in range(self.K):
             E_beta = self.lam_E[Nd_index,k] # Nd * 1: indexing for words in dth document
@@ -210,33 +240,37 @@ class LDA_VI:
         ## vectorize to reduce time
         # to prevent overfloat
         #self.phi -= self.phi.min(axis=1)[:,None]
-        self.phi[d][Nd_index,:] = exp(self.phi[d][Nd_index,:])
+        self.phi[d][Nd_index,:] = exp(self.phi[d].A[Nd_index,:])
         # normalize prob
-        self.phi[d][Nd_index,:] /= np.sum(self.phi[d][Nd_index,:], axis=1)[:,None]
-        # print(None)
+        self.phi[d][Nd_index,:] /= np.sum(self.phi[d].A[Nd_index,:], axis=1)[:,None]
+
 
     def _update_gam(self,d):
+
         gam_d = np.repeat(self.alpha, self.K)
-        ids = np.nonzero(self.X[d,:])[0]
-        n_dw = self.X[d,:][ids] # ids*1
-        phi_dwk = self.phi[d][ids,:] # ids*K
+        ids = np.nonzero(self.X.A[d,:])[0]
+        n_dw = self.X.A[d,:][ids] # ids*1
+        phi_dwk = self.phi[d].A[ids,:] # ids*K
         gam_d = gam_d + np.dot(n_dw, phi_dwk) # K*1 + K*1
 
         self.gam[d,:] = gam_d
         self.gam_E[d, :] = self._E_dir_1d(self.gam[d, :])
 
 
+
     def _update_lam(self):
         # for k in range(self.K):
         #     lam_k = np.sum(self.X, axis=0) * self.phi[d][:,k] + self.eta
         #     self.lam[:,k] = lam_k
+
         self.lam = np.zeros((self.V, self.K))
         for d in range(self.D):
-            self.lam += self.X[d,:][:,None] * self.phi[d]
+            self.lam += self.X.A[d,:][:,None] * self.phi[d].A
         self.lam += self.eta
 
         # update lambda dirichlet expectation
         self._update_lam_E_dir()
+
 
 
     def train(self, threshold, max_iter):
