@@ -10,17 +10,26 @@ from sklearn.feature_extraction.text import CountVectorizer
 EPS = np.finfo(np.float).eps
 
 class LDA_VI:
-    def __init__(self, alpha, eta, K, evaluate_every=10):
+    def __init__(self, alpha, eta, K, eta_seed=None, eta_not_seed=None, seed_words=None,
+                 confirmatory=None, evaluate_every=10):
         # loading data
         # self.data = pickle.load(open(path_data, 'rb'))
         # np.random.seed(0)
         # idx = np.random.choice(len(self.data), 1000, replace=False)
         # self.data = [j for i, j in enumerate(self.data) if i in idx]
         self.alpha = alpha # hyperparameter; dimension: T * 1 but assume symmetric prior
-        self.eta = eta  # hyperparameter; dimension: M * 1 but assume symmetric prior
+        self.eta_ordinary = eta  # hyperparameter; dimension: M * 1 but assume symmetric prior
+        self.eta_seed = eta_seed
+        self.eta_not_seed = eta_not_seed
+        self.seed_words = seed_words
         self.K = K
         self.evaluate_every = evaluate_every
+        self.confirmatory = confirmatory
         self.perplexity = []
+
+        if self.confirmatory:
+            if self.K != len(self.seed_words.keys()):
+                raise ValueError('Input number of topics does not match number of topics in seed words')
 
     def _make_vocab(self):
         self.vocab = []
@@ -52,6 +61,32 @@ class LDA_VI:
 
         self.D, self.V = X.shape
         self.Nd = [len(np.nonzero(X[doc, :])[0]) for doc in range(self.D)]
+
+
+        if self.confirmatory:
+
+            self.seed_word_index = []
+
+            # change words in seed_words dictionary to index
+            for key in self.seed_words.keys():
+                # filter seed words existing in corpus vocabulary
+                self.seed_words[key] = [i for i in self.seed_words[key] if i in list(self.w2idx.keys())]
+                self.seed_words[key] = [self.w2idx[i] for i in self.seed_words[key]]
+                self.seed_word_index += self.seed_words[key]
+
+            self.seed_word_index = list(set(self.seed_word_index))
+
+            # make asseymmetric prior for word-topic distribution
+            # different by each topic
+            self.eta = self.eta_ordinary * np.ones((self.K, self.V))
+            for k in range(self.K):
+                setdiff_index = np.array(list(set(range(self.K)) - set([k])))
+                key = list(self.seed_words.keys())[k]
+                not_key = [key for i, key in enumerate(list(self.seed_words.keys())) if i in setdiff_index]
+                self.eta[k, np.array(self.seed_words[key])] = self.eta_seed
+
+                for kk in not_key:
+                    self.eta[k, np.array(self.seed_words[kk])] = self.eta_not_seed
 
         # initialize variational parameters for q(beta) ~ Dir(lambda)
         np.random.seed(1)
@@ -293,7 +328,7 @@ class LDA_VI:
         print('Done Optimizing!')
 
 
-    def _loglikelihood(self, prior, distr, Edirichlet, size):
+    def _loglikelihood(self, prior, distr, Edirichlet, size, beta=None):
         """Calculate loglikelihood for
         E[log p(theta | alpha) - log q(theta | gamma)]
         E[log p(beta | eta) - log q (beta | lambda)]
@@ -315,7 +350,10 @@ class LDA_VI:
 
         score = np.sum((prior - distr) * Edirichlet)
         score += np.sum(gammaln(distr) - gammaln(prior))
-        score += np.sum(gammaln(prior * size) - gammaln(np.sum(distr, 1)))
+        if self.confirmatory and beta:
+            score += np.sum(gammaln(np.sum(prior,1)) - gammaln(np.sum(distr, 1)))
+        else:
+            score += np.sum(gammaln(prior*size) - gammaln(np.sum(distr, 1)))
         return score
 
 
@@ -361,8 +399,12 @@ class LDA_VI:
                                 Elogtheta, self.K)
 
         # E[log p(beta | eta) - log q (beta | lambda)]
-        ELBO += self._loglikelihood(eta, self.components_,
-                                Elogbeta, self.V)
+        if self.confirmatory:
+            ELBO += self._loglikelihood(eta, self.components_,
+                                    Elogbeta, self.V, beta=True)
+        else:
+            ELBO += self._loglikelihood(eta, self.components_,
+                                        Elogbeta, self.V, beta=True)
 
         return ELBO
 
