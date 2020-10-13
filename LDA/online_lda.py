@@ -10,7 +10,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 EPS = np.finfo(np.float).eps
 
 class LDA_VI:
-    def __init__(self, path_data, alpha, eta,  K, evaluate_every=10):
+    def __init__(self, alpha, eta, K, evaluate_every=10):
         # loading data
         # self.data = pickle.load(open(path_data, 'rb'))
         # np.random.seed(0)
