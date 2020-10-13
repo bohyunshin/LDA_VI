@@ -8,7 +8,7 @@ import time
 from sklearn.feature_extraction.text import CountVectorizer
 
 from clda import CLDA_VI
-from online_lda_joblib import LDA_VI
+from online_lda import LDA_VI
 
 
 # #run my LDA model

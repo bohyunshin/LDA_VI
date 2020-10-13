@@ -10,35 +10,36 @@ from sklearn.feature_extraction.text import CountVectorizer
 EPS = np.finfo(np.float).eps
 
 class LDA_VI:
-    def __init__(self, path_data, alpha, eta,  K):
+    def __init__(self, path_data, alpha, eta,  K, evaluate_every=10):
         # loading data
-        self.data = pickle.load(open(path_data, 'rb'))
+        # self.data = pickle.load(open(path_data, 'rb'))
         # np.random.seed(0)
         # idx = np.random.choice(len(self.data), 1000, replace=False)
         # self.data = [j for i, j in enumerate(self.data) if i in idx]
         self.alpha = alpha # hyperparameter; dimension: T * 1 but assume symmetric prior
         self.eta = eta  # hyperparameter; dimension: M * 1 but assume symmetric prior
         self.K = K
+        self.evaluate_every = evaluate_every
         self.perplexity = []
 
     def _make_vocab(self):
         self.vocab = []
-        for lst in self.data:
-            self.vocab += lst
-        self.vocab = sorted(list(set(self.vocab)))
-
-        # make DTM
-        self.data_join = [' '.join(doc) for doc in self.data]
-        self.cv = CountVectorizer()
-        self.X = self.cv.fit_transform(self.data_join).toarray()
-        self.w2idx = self.cv.vocabulary_
-        self.idx2w = {val: key for key, val in self.w2idx.items()}
+        # for lst in self.data:
+        #     self.vocab += lst
+        # self.vocab = sorted(list(set(self.vocab)))
+        #
+        # # make DTM
+        # self.data_join = [' '.join(doc) for doc in self.data]
+        # self.cv = CountVectorizer()
+        # self.X = self.cv.fit_transform(self.data_join).toarray()
+        # self.w2idx = self.cv.vocabulary_
+        # self.idx2w = {val: key for key, val in self.w2idx.items()}
 
         # # excluded words from count vectorizer
         # stop_words = list(set(self.vocab) - set(list(self.w2idx.keys())))
 
 
-    def _init_params(self):
+    def _init_params(self, X, cv):
         '''
         Initialize parameters for LDA
         This is variational free parameters each endowed to
@@ -46,9 +47,11 @@ class LDA_VI:
         theta_d: alpha_star
         phi_t : beta_star
         '''
-        self.V = len(self.w2idx)
-        self.D = len(self.data)
-        self.Nd = [len(doc) for doc in self.data]
+        self.w2idx = cv.vocabulary_
+        self.idx2w = {val: key for key, val in self.w2idx.items()}
+
+        self.D, self.V = X.shape
+        self.Nd = [len(np.nonzero(X[doc, :])[0]) for doc in range(self.D)]
 
         # initialize variational parameters for q(beta) ~ Dir(lambda)
         np.random.seed(1)
@@ -76,12 +79,14 @@ class LDA_VI:
 
 
 
-    def _e_step(self, maxIter, threshold, random_state):
+    def _e_step(self, X, maxIter, threshold, random_state):
 
         """E-step in EM update.
 
         Parameters
         ----------
+        X : Document-Term matrix
+
         maxIter : Maximum number of iterations for individual document loop.
 
         threshold : Threshold for individual document loop
@@ -108,9 +113,9 @@ class LDA_VI:
 
         # e-step for each document
         for d in range(self.D):
-            Nd_index = np.nonzero(self.X[d, :])[0]
+            Nd_index = np.nonzero(X[d, :])[0]
 
-            cnts = self.X[d, Nd_index] # 1*Nd
+            cnts = X[d, Nd_index] # 1*Nd
             gammad = gamma[d, :] # 1*K
             Elogthetad = Elogtheta[d, :] # 1*K
             expElogthetad = np.exp(Elogthetad) # 1*K
@@ -162,11 +167,13 @@ class LDA_VI:
 
         return gamma, sstats
 
-    def do_e_step(self, maxIter, threshold, random_state, parallel = None):
+    def do_e_step(self,X,  maxIter, threshold, random_state, parallel = None):
         """Parallel update for e-step
 
         Parameters
         ----------
+        X : Document-Term matrix
+
         parallel : Pre-initialized joblib
 
         maxIter : Maximum number of iterations for individual document loop.
@@ -186,15 +193,17 @@ class LDA_VI:
         """
 
         # Parallel job is not finished yet!!
-        gamma, sstats = self._e_step(maxIter, threshold, random_state)
+        gamma, sstats = self._e_step(X, maxIter, threshold, random_state)
         return gamma, sstats
 
-    def _em_step(self, maxIter, threshold, random_state):
+    def _em_step(self, X, maxIter, threshold, random_state):
 
         """EM-step for 1 iteration
 
         Parameters
         ----------
+        X : Document-Term matrix
+
         maxIter : Maximum number of iterations for for individual document loop.
 
         threshold : Threshold for individual document loop
@@ -213,7 +222,7 @@ class LDA_VI:
 
         """
 
-        gamma, sstats = self.do_e_step(maxIter, threshold, random_state)
+        gamma, sstats = self.do_e_step(X, maxIter, threshold, random_state)
 
         self.gamma = gamma
         self.components_ = sstats + self.eta
@@ -224,13 +233,15 @@ class LDA_VI:
         return
 
 
-    def train(self , maxIter, maxIterDoc, threshold, random_state):
+    def train(self , X, cv, maxIter, maxIterDoc, threshold, random_state):
 
         """Learn variational parameters using batch-approach
         Note: online-approach will be update shortly
 
         Parameters
         ----------
+        X: Document-Term matrix
+
         maxIter : Maximum number of iterations for EM loop.
 
         maxIterDoc: Maximum number of iterations for individual loop
@@ -246,18 +257,14 @@ class LDA_VI:
 
         """
 
-        print('Making Vocabs...')
-        self._make_vocab()
-
         print('Initializing Parms...')
-        self._init_params()
+        self._init_params(X,cv)
         print(f'# of Documents: {self.D}')
         print(f'# of unique vocabs: {self.V}')
         print(f'{self.K} topics chosen')
 
         print('Start optimizing!')
         # initialize ELBO
-        ELBO_before = 0
         ELBO_after = 99999
         self._ELBO_history = []
 
@@ -267,11 +274,11 @@ class LDA_VI:
             ELBO_before = ELBO_after
 
             # do EM-step
-            self._em_step(maxIterDoc, threshold, random_state)
-
-            if iter % 10 == 0:
+            self._em_step(X, maxIterDoc, threshold, random_state)
+            # print(iter)
+            if iter % self.evaluate_every == 0:
                 print('Now calculating ELBO...')
-                ELBO_after = self._approx_bound()
+                ELBO_after = self._approx_bound(X)
                 self._ELBO_history.append(ELBO_after)
                 self._perplexity(ELBO_after)
 
@@ -312,7 +319,7 @@ class LDA_VI:
         return score
 
 
-    def _approx_bound(self):
+    def _approx_bound(self, X):
         """Estimate the variational bound, ELBO.
 
         Estimate the variational bound over "all documents". Since we
@@ -323,6 +330,7 @@ class LDA_VI:
 
         Parameters
         ----------
+        X : Document-Term matrix
 
         Returns
         -------
@@ -340,8 +348,8 @@ class LDA_VI:
 
         # E[log p(docs | theta, beta)]
         for d in range(self.D):
-            Nd_index = np.nonzero(self.X[d, :])[0]
-            cnts = self.X[d, Nd_index]  # 1*Nd
+            Nd_index = np.nonzero(X[d, :])[0]
+            cnts = X[d, Nd_index]  # 1*Nd
 
             temp = (Elogtheta[d, :, np.newaxis]
                     + Elogbeta[:, Nd_index])
