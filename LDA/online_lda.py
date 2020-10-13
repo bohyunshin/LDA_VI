@@ -139,6 +139,7 @@ class LDA_VI:
 
                 meanchange = np.mean(abs(gammad - lastgamma))
                 if (meanchange < threshold):
+
                     break
 
             # update dth gamma parameter after convergence

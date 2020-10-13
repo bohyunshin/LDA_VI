@@ -1,48 +1,149 @@
 import numpy as np
 from numpy import exp, log
-from scipy.special import digamma, gamma, loggamma
-from collections import Counter, OrderedDict
 import pickle
-import time
-from joblib import Parallel, delayed, cpu_count
-
 from _online_lda_fast import _dirichlet_expectation_2d, _dirichlet_expectation_1d_
 from sklearn.feature_extraction.text import CountVectorizer
+from utils import gen_even_slices
+
+from scipy.special import digamma, gamma, loggamma, gammaln, logsumexp
+from joblib import Parallel, delayed, effective_n_jobs, cpu_count
 
 EPS = np.finfo(np.float).eps
 
+
+def _update_doc_distribution(X, components_, expElogbeta, cal_sstats, alpha, maxIter, threshold, random_state):
+    """E-step in EM update.
+
+    Parameters
+    ----------
+    X : Document-Term matrix whose dimension is D*V
+
+    components_ : Word-topic distribution for corpus denoted
+        by lambda in the literature
+
+    expElogbeta : Exponential of expectation of log beta.
+
+    cal_sstats : Whether to calculate expected sufficient statistics or not.
+        In the literature, this corresponds to E[ log beta_{kw} ].
+        By computing E[ log beta_{kw} ] in advance, we do note need to store
+        phi_{dwk}, which accounts for huge memory if stored as a variable.
+
+    alpha : Prior for document topic distribution
+        denoted by alpha in the literature
+
+    maxIter : Maximum number of iterations for individual document loop.
+
+    threshold : Threshold for individual document loop
+
+    random_state : Integer
+        Random number of initialization of gamma parameters
+
+    Returns
+    -------
+    (gamma, sstats) :
+        `gamma` is topic distribution for each
+        document. In the literature, this is called `gamma`.
+        `sstats` is expected sufficient statistics for the M-step.
+        Computation of M-step is done in advance to reduce computation
+
+    """
+
+    D = X.shape[0]
+    K = expElogbeta.shape[0]
+
+
+    np.random.seed(random_state)
+    gamma = np.random.gamma(100., 1. / 100., (D, K))
+    Elogtheta = _dirichlet_expectation_2d(gamma)
+    # expElogtheta = np.exp(Elogtheta)
+
+    sstats = np.zeros(components_.shape)
+
+    # e-step for each document
+    for d in range(D):
+        Nd_index = np.nonzero(X[d, :])[0]
+
+        cnts = X[d, Nd_index]  # 1*Nd
+        gammad = gamma[d, :]  # 1*K
+        Elogthetad = Elogtheta[d, :]  # 1*K
+        expElogthetad = np.exp(Elogthetad)  # 1*K
+        expElogbetad = expElogbeta[:, Nd_index]  # K*Nd
+
+        # normalizer for phi_{dwk}
+        # inner product between 1*K, 1*K array -> scalar normalizer
+        phinorm = np.dot(expElogthetad, expElogbetad) + 1e-100
+
+        # Iterate gamma, phi until gamma converges
+        for it in range(maxIter):
+            lastgamma = gammad
+
+            # update for gamma_{dk} = alpha + \sum_w n_{dw} phi_{dwk}
+            # here, phi_{dwk} is defined implicitly to save memory
+            # elementwise product between 1*K and
+            # innerproduct(1*Nd, Nd*K) = 1*K
+            # -> 1*K dimension
+            gammad = alpha + expElogthetad * \
+                     np.dot(cnts / phinorm, expElogbetad.T)
+
+            # for next iteration, update values
+            Elogthetad = _dirichlet_expectation_1d_(gammad)
+            expElogthetad = np.exp(Elogthetad)
+            phinorm = np.dot(expElogthetad, expElogbetad) + 1e-100
+
+            meanchange = np.mean(abs(gammad - lastgamma))
+            if (meanchange < threshold):
+                break
+
+        # update dth gamma parameter after convergence
+        gamma[d, :] = gammad
+
+        # contribution of document d to the expected sufficient
+        # statistics for the M step.
+        # Note phi_{dwk} is not defined explicitly, but implicitly
+        # by calculating expElogthetad, expElogbetad because of the memory issue
+        # Here, we have not finished calculating lambda_{kw}
+        # because we have not multiplied expElogbetad which will be done at the end of e-step
+        if cal_sstats:
+            sstats[:, Nd_index] += np.outer(expElogthetad.T, cnts / phinorm)
+
+    return (gamma, sstats)
+
+
+
+
 class LDA_VI:
-    def __init__(self, path_data, alpha, eta,  K, n_jobs, verbose=0):
+    def __init__(self, path_data, alpha, eta,  K, n_jobs = None, verbose=0, evaluate_every = 30):
         # loading data
-        self.data = pickle.load(open(path_data, 'rb'))
-        np.random.seed(0)
-        idx = np.random.choice(len(self.data), 1000, replace=False)
-        self.data = [j for i, j in enumerate(self.data) if i in idx]
+        # self.data = pickle.load(open(path_data, 'rb'))
+        # np.random.seed(0)
+        # idx = np.random.choice(len(self.data), 1000, replace=False)
+        # self.data = [j for i, j in enumerate(self.data) if i in idx]
         self.alpha = alpha # hyperparameter; dimension: T * 1 but assume symmetric prior
         self.eta = eta  # hyperparameter; dimension: M * 1 but assume symmetric prior
         self.K = K
         self.perplexity = []
-        self.n_jobs = n_jobs
+        self.n_jobs = cpu_count() if n_jobs is None else n_jobs
         self.verbose = verbose
+        self.evaluate_every = evaluate_every
 
     def _make_vocab(self):
         self.vocab = []
-        for lst in self.data:
-            self.vocab += lst
-        self.vocab = sorted(list(set(self.vocab)))
+        # for lst in self.data:
+        #     self.vocab += lst
+        # self.vocab = sorted(list(set(self.vocab)))
+        #
+        # # make DTM
+        # self.data_join = [' '.join(doc) for doc in self.data]
+        # self.cv = CountVectorizer()
+        # self.X = self.cv.fit_transform(self.data_join).toarray()
+        # self.w2idx = self.cv.vocabulary_
+        # self.idx2w = {val: key for key, val in self.w2idx.items()}
 
-        # make DTM
-        self.data_join = [' '.join(doc) for doc in self.data]
-        self.cv = CountVectorizer()
-        self.X = self.cv.fit_transform(self.data_join).toarray()
-        self.w2idx = self.cv.vocabulary_
-        self.idx2w = {val: key for key, val in self.w2idx.items()}
-
-        # excluded words from count vectorizer
-        stop_words = list(set(self.vocab) - set(list(self.w2idx.keys())))
+        # # excluded words from count vectorizer
+        # stop_words = list(set(self.vocab) - set(list(self.w2idx.keys())))
 
 
-    def _init_params(self):
+    def _init_params(self, X, cv):
         '''
         Initialize parameters for LDA
         This is variational free parameters each endowed to
@@ -50,271 +151,290 @@ class LDA_VI:
         theta_d: alpha_star
         phi_t : beta_star
         '''
-        self.V = len(self.w2idx)
-        self.D = len(self.data)
-        self.Nd = [len(doc) for doc in self.data]
 
-        # # set initial value for free variational parameters
-        # self.phi = np.ones((self.V, self.K)) # dimension: for topic d, Nd * K
+        self.w2idx = cv.vocabulary_
+        self.idx2w = {val: key for key, val in self.w2idx.items()}
 
-        # set initial phi: different for each document
-        self.phi = {}
-        for d in range(self.D):
-            self.phi[d] = np.ones((self.V, self.K))
+        self.D, self.V = X.shape
+        self.Nd = [len(np.nonzero(X[doc,:])[0]) for doc in range(self.D)]
 
-        # initialize variational parameters of dirichlet through gamma distribution
+        # initialize variational parameters for q(beta) ~ Dir(lambda)
         np.random.seed(1)
-        self.lam = np.random.gamma(100, 1/100, (self.V, self.K)) # dimension: V * K
-        np.random.seed(2)
-        self.gam = np.random.gamma(100, 1/100, (self.D, self.K)) # dimension: D * K
-
-        # initialize dirichlet expectation to reduce computation time
+        self.components_ = np.random.gamma(100, 1/100, (self.K, self.V)) # dimension: K * V
         self._update_lam_E_dir()
-        self._update_gam_E_dir()
 
 
-    # def _update_doc_distribution(self,  cal_sstats, threshold, max_iters = 100):
-    #     # array to store normalized phi
-    #     # we do not calculate this for every document iteration
-    #     # we calculate this after gamma converge, which means the e-step is ended.
-    #     suff_stats = np.zeros((self.V, self.K)) if cal_sstats else None
-    #     for d in range(self.D):
-    #         ids = np.nonzero(self.X[d,:])[0] # 1*ids
-    #         cnts = self.X[d, ids] # 1*ids
+
+    # def _E_dir(self, params_mat):
+    #     '''
+    #     input: vector parameters of dirichlet
+    #     output: Expecation of dirichlet - also vector
+    #     '''
+    #     return _dirichlet_expectation_2d(params_mat)
     #
-    #         # this is gamma parameter before optimization
-    #         doc_topic_d = self.gam[d,:]
-    #
-    #
-    #         exp_topic_word_d = self.lam[ids, :] # ids*K
-    #
-    #         for _ in range(max_iters):
-    #             last_d = doc_topic_d
-    #             exp_doc_topic_d = exp(self.gam_E[d,:]) # K*1
-    #
-    #             # get optimal value of phi_{dwk}
-    #             # which is proportional to exp(E[log(theta_{dk})]) * exp(E[log(beta_{dw})])
-    #             # in our variable,
-    #             # exp(E[log(theta_{dk})]): exp_doc_topic_d
-    #             # exp(E[log(beta_{dw})]): exp_topic_word_d
-    #             norm_phi = np.dot(exp_doc_topic_d, exp_topic_word_d.T) + EPS # ids * 1
-    #             # each element of norm_phi stores \sum_k phi_{dwk}, which means normalizer of exp * exp
-    #
-    #             # finally, update gamma parameter
-    #             # not np.dot, just product of each element
-    #             doc_topic_d = (exp_doc_topic_d * # K*1
-    #                            np.dot(cnts / norm_phi, exp_topic_word_d)) # K*1
-    #
-    #             self.gam_E[d,:] = self._E_dir_1d(doc_topic_d)
-    #
-    #             if sum(abs(last_d - doc_topic_d)) / self.K < threshold:
-    #                 break
-    #         self.gam[d,:] = doc_topic_d
-    #
-    #         if cal_sstats:
-    #             norm_phi = np.dot(exp_doc_topic_d, exp_topic_word_d.T) + EPS  # ids * 1
-    #             suff_stats[ids, :] += np.outer()
-    #
-    #
-    #     return None
+    # def _E_dir_1d(self, params):
+    #     return _dirichlet_expectation_1d_(params)
 
-    def _ELBO(self):
-        term1 = 0 # E[ log p( w | phi, z) ]
-        term2 = 0 # E[ log p( z | theta) ]
-        term3 = 0 # E[ log q(z) ]
-        term4 = 0 # E[ log p( theta | alpha) ]
-        term5 = 0 # E[ log q( theta ) ]
-        term6 = 0 # E[ log p(beta | eta) ]
-        term7 = 0 # E[ log q(beta) ]
-
-        '''
-        ELBO is calculated w.r.t. each document
-        Update term1, term2, term5 together
-        Update term3, term6 together
-        Update term4, term7 together
-        ELBO = term1 + term2 + term3 + term4 - term5 - term6 - term7
-        '''
-
-        # update term 1, 2, 3, 4, 5
-        for d in range(self.D):
-
-            ndw = self.X[d,:]
-            for k in range(self.K):
-                # update term 1
-                tmp = self.lam_E[:,k] * self.phi[d][:,k]
-                # ndw_vec = np.zeros(self.V) # V * 1
-                # ndw_vec[ndw] += self.X[d,ndw]
-
-                term1 += (tmp * ndw).sum()
-
-                # update term 2
-                tmp = (ndw * self.phi[d][:,k]).sum() # sum of V * 1 numpy arrays: scalar
-                E_theta_dk = self.gam_E[d,k] # scalar
-                term2 += E_theta_dk * tmp # scalar * scalar = scalar
-
-                # update term 3
-                tmp = self.phi[d][:,k] * log(self.phi[d][:,k] + 0.000000001)
-                term3 += (tmp * ndw).sum()
-
-
-
-
-            # update term 4
-            term4 += loggamma(self.K * self.alpha) - log(self.K * gamma(self.alpha))
-            term4 += (self.alpha - 1) * self.gam_E[d,:].sum()
-
-            # update term 5
-            term5 += loggamma(sum(self.gam[d,:])) - sum(loggamma(self.gam[d,:]))
-            term5 += ( (self.gam[d,:]-1) * self.gam_E[d,:] ).sum()
-
-        print('Done term 1 ~ 5')
-
-
-        for k in range(self.K):
-            # update term 6
-            term6 += loggamma(self.V * self.eta) - log(self.V * gamma(self.eta))
-            term6 +=  (self.eta-1) * self.lam_E[:,k].sum()
-
-            # update term 7
-            term7 += loggamma(sum( self.lam[:,k] )) - sum( loggamma(self.lam[:,k]) )
-            term7 += ( ( self.lam[:,k]-1 ) * ( self.lam_E[:,k] ) ).sum()
-        print('Done term 6, 7')
-
-        return term1 + term2 - term3 + term4 - term5 + term6 - term7
-
-    def _E_dir(self, params_mat):
-        '''
-        input: vector parameters of dirichlet
-        output: Expecation of dirichlet - also vector
-        '''
-        return _dirichlet_expectation_2d(params_mat)
-
-    def _E_dir_1d(self, params):
-        return _dirichlet_expectation_1d_(params)
-
-    def _update_gam_E_dir(self):
-        self.gam_E = self._E_dir(self.gam.transpose()).transpose()
+    # def _update_gam_E_dir(self):
+    #     self.gam_E = self._E_dir(self.gam)
 
     def _update_lam_E_dir(self):
-        self.lam_E = self._E_dir(self.lam.transpose()).transpose()
+        self.Elogbeta = _dirichlet_expectation_2d(self.components_)
+        self.expElogbeta = np.exp(self.Elogbeta)
 
 
-    def _update_phi(self, d):
-        # duplicated words are ignored
-        Nd_index = np.nonzero(self.X[d,:])[0]
-        # get the proportional value in each topic t,
-        # and then normalize to make as probabilities
-        # the indicator of Z_dn remains only one term
+    def _e_step(self, X,  maxIter, cal_sstats, threshold, random_state,  parallel = None):
+        """Parallel update for e-step
 
+        Parameters
+        ----------
+        X : Document-Term matrix
 
-        for k in range(self.K):
-            E_beta = self.lam_E[Nd_index,k] # Nd * 1: indexing for words in dth document
-            E_theta = self.gam_E[d,k] # scalar: indexing for kth topic
-            self.phi[d][Nd_index,k] = E_beta + E_theta # Nd * 1
-        ## vectorize to reduce time
-        # to prevent overfloat
-        #self.phi -= self.phi.min(axis=1)[:,None]
-        self.phi[d][Nd_index,:] = exp(self.phi[d][Nd_index,:])
-        # normalize prob
-        self.phi[d][Nd_index,:] /= np.sum(self.phi[d][Nd_index,:], axis=1)[:,None]
-        # print(None)
+        parallel : Pre-initialized joblib
 
-    def _update_gam(self,d):
-        gam_d = np.repeat(self.alpha, self.K)
-        ids = np.nonzero(self.X[d,:])[0]
-        n_dw = self.X[d,:][ids] # ids*1
-        phi_dwk = self.phi[d][ids,:] # ids*K
-        gam_d = gam_d + np.dot(n_dw, phi_dwk) # K*1 + K*1
+        maxIter : Maximum number of iterations for individual document loop.
 
-        self.gam[d,:] = gam_d
-        self.gam_E[d, :] = self._E_dir_1d(self.gam[d, :])
+        cal_sstats: Whether to compute sufficient statistics
 
+        threshold : Threshold for individual document loop
 
-    def _update_lam(self):
-        # for k in range(self.K):
-        #     lam_k = np.sum(self.X, axis=0) * self.phi[d][:,k] + self.eta
-        #     self.lam[:,k] = lam_k
-        self.lam = np.zeros((self.V, self.K))
-        for d in range(self.D):
-            self.lam += self.X[d,:][:,None] * self.phi[d]
-        self.lam += self.eta
+        random_state : Integer
+            Random number of initialization of gamma parameters
 
-        # update lambda dirichlet expectation
+        Returns
+        -------
+        (gamma, sstats) :
+            `gamma` is topic distribution for each
+            document. In the literature, this is called `gamma`.
+            `sstats` is expected sufficient statistics for the M-step.
+            Computation of M-step is almost done in advance on the e-step
+            to reduce computation
+        """
+
+        # Run e-step in parallel
+        n_jobs = effective_n_jobs(self.n_jobs)
+        if parallel is None:
+            parallel = Parallel(n_jobs=n_jobs, verbose=max(0,
+                                                           self.verbose - 1))
+        results = parallel(
+            delayed(_update_doc_distribution)(X[idx_slice, :],
+                                              self.components_,
+                                              self.expElogbeta,
+                                              cal_sstats,
+                                              self.alpha,
+                                              maxIter, threshold, random_state)
+            for idx_slice in gen_even_slices(X.shape[0], n_jobs))
+
+        # merge result
+        doc_topics, sstats_list = zip(*results)
+        gamma = np.vstack(doc_topics)
+
+        if cal_sstats:
+            # This step finished computing the sufficient statistics for the
+            # M step, so that
+            # sstats[k,w] = \sum_d n_{dw} * phi_{dwk}
+            # = \sum_d n_{dw} * exp{ Elogtheta_{dk} + Elogbeta_{kw} } / phinorm_{dw}
+            suff_stats = np.zeros(self.components_.shape)
+            for sstats in sstats_list:
+                suff_stats += sstats
+            suff_stats *= self.expElogbeta
+        else:
+            suff_stats = None
+
+        return (gamma, suff_stats)
+
+    def _em_step(self, X, maxIter, threshold, random_state, parallel=None):
+
+        """EM-step for 1 iteration
+
+        Parameters
+        ----------
+        X : Document-Term matrix
+
+        maxIter : Maximum number of iterations for for individual document loop.
+
+        threshold : Threshold for individual document loop
+
+        random_state : Integer
+            Random number of initialization of gamma parameters
+
+        Returns
+        -------
+        (gamma, components_) :
+            `gamma` is topic distribution for each
+            document. In the literature, this is called `gamma`.
+            `components_` is word distribution for each
+            topic. In the literature, this is called 'lambda'.
+            It has the same meaning as self.components_ in scikit-learn implementation
+
+        """
+
+        # E-step
+        _, suff_sstats = self._e_step(X,
+                                     maxIter=maxIter,
+                                     threshold=threshold,
+                                     random_state=random_state,
+                                     cal_sstats=True,
+                                     parallel=parallel)
+
+        # self.gamma = gamma
+
+        # Finished M-step
+        self.components_ = suff_sstats + self.eta
+
+        # update lambda related variables, expectation and exponential of expectation
         self._update_lam_E_dir()
 
-    def _update_doc(self, d,threshold, max_iter):
-        gam_before = self.gam[d, :]
-        gam_after = np.repeat(999, self.K)
-
-        curr_iter = 0
-        while sum(abs(gam_before - gam_after)) / self.K > threshold:
-            gam_before = gam_after
-            self._update_phi(d)
-            self._update_gam(d)
-            gam_after = self.gam[d, :]
-            curr_iter += 1
-
-            if curr_iter > max_iter:
-                break
+        return
 
 
+    def train(self , X, cv, maxIter, maxIterDoc, threshold, random_state):
 
+        """Learn variational parameters using batch-approach
+        Note: online-approach will be update shortly
 
-    def train(self, threshold, max_iter, parallel=None):
+        Parameters
+        ----------
+        X : Document-Term matrix
 
-        print('Making Vocabs...')
-        self._make_vocab()
+        cv: CountVectorizer object made from X
+
+        maxIter : Maximum number of iterations for EM loop.
+
+        maxIterDoc: Maximum number of iterations for individual loop
+
+        threshold : Threshold for EM & individual document loop
+
+        random_state : Integer
+            Random number of initialization of gamma parameters
+
+        Returns
+        -------
+        self
+
+        """
+
+        # print('Making Vocabs...')
+        # self._make_vocab()
 
         print('Initializing Parms...')
-        self._init_params()
+        self._init_params(X, cv)
         print(f'# of Documents: {self.D}')
         print(f'# of unique vocabs: {self.V}')
         print(f'{self.K} topics chosen')
 
         print('Start optimizing!')
         # initialize ELBO
-        ELBO_before = 0
+
         ELBO_after = 99999
         self._ELBO_history = []
-
+        n_jobs = effective_n_jobs(self.n_jobs)
         print('##################### start training #####################')
-        for iter in range(max_iter):
-            start = time.time()
-            ELBO_before = ELBO_after
-            print('\n')
+        with Parallel(n_jobs=n_jobs,
+                      verbose=max(0,self.verbose-1)) as parallel:
+            for iter in range(maxIter):
 
-            print('E step: start optimizing phi, gamma...')
-            self.gam = np.ones((self.D, self.K))
-            self._update_gam_E_dir()
+                ELBO_before = ELBO_after
 
-            if parallel is None:
-                parallel = Parallel(n_jobs=self.n_jobs, verbose=max(0, self.verbose-1))
+                # do batch EM
+                self._em_step(X, maxIterDoc, threshold, random_state, parallel)
 
-            parallel(
-                delayed(self._update_doc)(d, threshold, max_iter)
-            for d in range(self.D))
+                print(iter)
+                # calculate ELBO
+                if iter % self.evaluate_every == 0:
+                    print('Now calculating ELBO...')
+                    gamma, _ = self._e_step(X,
+                                            maxIter=maxIterDoc,
+                                            cal_sstats=False,
+                                            threshold=threshold,
+                                            random_state=random_state,
+                                            parallel=parallel
+                                            )
+                    ELBO_after = self._approx_bound(X,gamma)
+                    self._ELBO_history.append(ELBO_after)
+                    self._perplexity(ELBO_after)
 
-            # update beta_star
-            print('M step: Updating lambda..')
-            self._update_lam()
-            print('Finished Iteration!')
-            print('\n')
+                    print(f'Current Iteration: {iter}')
+                    print(f'Before ELBO: {ELBO_before}')
+                    print(f'After ELBO: {ELBO_after}')
+                    print('\n')
 
-            if iter % 50 == 0:
-                print('Now calculating ELBO...')
-                ELBO_after = self._ELBO()
-                self._ELBO_history.append(ELBO_after)
-                self._perplexity(ELBO_after)
+                    if abs(ELBO_before - ELBO_after) < threshold:
+                        break
 
-                print(f'Before ELBO: {ELBO_before}')
-                print(f'After ELBO: {ELBO_after}')
-                print('\n')
 
-                if abs(ELBO_before - ELBO_after) < threshold:
-                    break
+    def _loglikelihood(self, prior, distr, Edirichlet, size):
+        """Calculate loglikelihood for
+        E[log p(theta | alpha) - log q(theta | gamma)]
+        E[log p(beta | eta) - log q (beta | lambda)]
 
-            print(f'Computation time: {(time.time()-start)/60} mins')
-        print('Done Optimizing!')
+        Parameters
+        ----------
+        prior : Prior for each distribution. In literature,
+        this is alpha and eta
+
+        distr : Variational parameters for q(theta), q(beta)
+        For q(theta), this is gamma, D*K dimensional array and
+        for q(beta), this is beta, K*V dimensional array
+
+        Edirichlet: Expectation for log dirichlet specified in distr.
+        For q(theta), this is self.Elogtheta and
+        for q(beta), this is self.Elogbeta
+
+        """
+
+        score = np.sum((prior - distr) * Edirichlet)
+        score += np.sum(gammaln(distr) - gammaln(prior))
+        score += np.sum(gammaln(prior * size) - gammaln(np.sum(distr, 1)))
+        return score
+
+
+    def _approx_bound(self, X, gamma):
+        """Estimate the variational bound, ELBO.
+
+        Estimate the variational bound over "all documents". Since we
+        cannot compute the exact loglikelihood for corpus, we estimate
+        the lower bound of loglikelihood, ELBO in the literature.
+        In mathematical formula, it is
+        E[log p(w, z, theta, lambda)] - E[log q(z, theta, lambda)]
+
+        Parameters
+        ----------
+        X : Document-Term matrix
+
+        gamma : doc_topic distribution, dimension is D*K
+        Returns
+        -------
+        score : float
+        """
+
+        Elogtheta = _dirichlet_expectation_2d(gamma) # D*K
+        Elogbeta = self.Elogbeta # K*V
+        _lambda = self.components_  # K*V
+        alpha = self.alpha
+        eta = self.eta
+
+        ELBO = 0
+
+        # E[log p(docs | theta, beta)]
+        for d in range(self.D):
+            Nd_index = np.nonzero(X[d, :])[0]
+            cnts = X[d, Nd_index]  # 1*Nd
+
+            temp = (Elogtheta[d, :, np.newaxis]
+                    + Elogbeta[:, Nd_index])
+            norm_phi = logsumexp(temp, axis=0)
+            ELBO += np.dot(cnts, norm_phi)
+
+        # compute E[log p(theta | alpha) - log q(theta | gamma)]
+        ELBO += self._loglikelihood(alpha, gamma,
+                                Elogtheta, self.K)
+
+        # E[log p(beta | eta) - log q (beta | lambda)]
+        ELBO += self._loglikelihood(eta, self.components_,
+                                Elogbeta, self.V)
+
+        return ELBO
 
 
     def _perplexity(self, ELBO):
