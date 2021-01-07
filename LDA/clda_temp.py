@@ -9,30 +9,24 @@ from sklearn.feature_extraction.text import CountVectorizer
 
 EPS = np.finfo(np.float).eps
 
-class LDA_VI:
-    def __init__(self, alpha, eta, K, eta_seed=None, eta_not_seed=None, seed_words=None,
-                 confirmatory=None, evaluate_every=10):
+class CLDA_VI:
+    def __init__(self, alpha, eta, K, seed_words=None, evaluate_every=10):
         # loading data
         # self.data = pickle.load(open(path_data, 'rb'))
         # np.random.seed(0)
         # idx = np.random.choice(len(self.data), 1000, replace=False)
         # self.data = [j for i, j in enumerate(self.data) if i in idx]
         self.alpha = alpha # hyperparameter; dimension: T * 1 but assume symmetric prior
-        if confirmatory:
-            self.eta_ordinary = eta  # hyperparameter; dimension: M * 1 but assume symmetric prior
-        else:
-            self.eta = eta
-        self.eta_seed = eta_seed
-        self.eta_not_seed = eta_not_seed
+        self.eta = eta  # hyperparameter; dimension: M * 1 but assume symmetric prior
         self.seed_words = seed_words
         self.K = K
         self.evaluate_every = evaluate_every
-        self.confirmatory = confirmatory
         self.perplexity = []
 
-        if self.confirmatory:
-            if self.K != len(self.seed_words.keys()):
-                raise ValueError('Input number of topics does not match number of topics in seed words')
+        self.iter = 0
+
+        if self.K != len(self.seed_words.keys()):
+            raise ValueError('Input number of topics does not match number of topics in seed words')
 
     def _make_vocab(self):
         self.vocab = []
@@ -58,6 +52,8 @@ class LDA_VI:
         q(Z_{di} = k) ~ Multi(phi_{dwk})
         q(theta_d) ~ Dir(gamma_d)
         q(beta_k) ~ Dir(lambda_k)
+        q(b_{dik}) ~ Ber(kap_{dik})
+        q(nu_{dik}) ~ Beta(delta_{dik1}, delta_{dik2})
         '''
         self.w2idx = cv.vocabulary_
         self.idx2w = {val: key for key, val in self.w2idx.items()}
@@ -66,30 +62,32 @@ class LDA_VI:
         self.Nd = [len(np.nonzero(X[doc, :])[0]) for doc in range(self.D)]
 
 
-        if self.confirmatory:
+        self.seed_word_index = []
 
-            self.seed_word_index = []
+        # change words in seed_words dictionary to index
+        for key in self.seed_words.keys():
+            # filter seed words existing in corpus vocabulary
+            self.seed_words[key] = [i for i in self.seed_words[key] if i in list(self.w2idx.keys())]
+            # mapping filtered seed words to index
+            self.seed_words[key] = [self.w2idx[i] for i in self.seed_words[key]]
+            self.seed_word_index += self.seed_words[key]
 
-            # change words in seed_words dictionary to index
-            for key in self.seed_words.keys():
-                # filter seed words existing in corpus vocabulary
-                self.seed_words[key] = [i for i in self.seed_words[key] if i in list(self.w2idx.keys())]
-                self.seed_words[key] = [self.w2idx[i] for i in self.seed_words[key]]
-                self.seed_word_index += self.seed_words[key]
+        # This dictionary maps key -> seed words in other key
+        # That is, suppose there are 4 topics, A,B,C,D.
+        # Then, seedwords2other_keys[A] = seed words in topic B,C,D
+        self.seedwords2other_keys = {}
+        for k in range(self.K):
+            setdiff_index = np.array(list(set(range(self.K)) - set([k])))
+            key = list(self.seed_words.keys())[k]
+            not_key = [key for i, key in enumerate(list(self.seed_words.keys())) if i in setdiff_index]
 
-            self.seed_word_index = list(set(self.seed_word_index))
+            other_seed_words = []
+            for kk in not_key:
+                other_seed_words += self.seed_words[kk]
+            self.seedwords2other_keys[key] = other_seed_words
 
-            # make asseymmetric prior for word-topic distribution
-            # different by each topic
-            self.eta = self.eta_ordinary * np.ones((self.K, self.V))
-            for k in range(self.K):
-                setdiff_index = np.array(list(set(range(self.K)) - set([k])))
-                key = list(self.seed_words.keys())[k]
-                not_key = [key for i, key in enumerate(list(self.seed_words.keys())) if i in setdiff_index]
-                self.eta[k, np.array(self.seed_words[key])] = self.eta_seed
 
-                for kk in not_key:
-                    self.eta[k, np.array(self.seed_words[kk])] = self.eta_not_seed
+        self.seed_word_index = list(set(self.seed_word_index))
 
         # initialize variational parameters for q(beta) ~ Dir(lambda)
         np.random.seed(1)
@@ -114,6 +112,83 @@ class LDA_VI:
     def _update_lam_E_dir(self):
         self.Elogbeta = _dirichlet_expectation_2d(self.components_)
         self.expElogbeta = np.exp(self.Elogbeta)
+
+    def _make_pi_prior(self, Nd_index, alpha, beta):
+        """Prior for informative prior, pi
+        Basically, we assume uninformative prior, i.e., Beta(1,1)
+        However, to incorpoarte information of seed words, we impose
+        informative prior for beta distribution corresponding to seed words.
+
+        If X ~ Beta(8,2), this distribution is skewed to 1 (mode near 1).
+        If X ~ Beta(2,8), this distribution is skewed to 0 (mode near 0).
+
+        Parameters
+        ----------
+        Nd_index: Word index for dth document
+        alpha: First hyperparameter for beta distribution
+        beta: Second hyperparameter for beta distirbution
+
+        Returns
+        -------
+        (pi1, pi2): K*Nd dimensional matrix
+        """
+        pi1 = np.ones((self.K, len(Nd_index)))
+        pi2 = np.ones((self.K, len(Nd_index)))
+
+        keys = list(self.seed_words.keys())
+
+        for k in range(self.K):
+            temp1 = pi1[k,:]
+            temp2 = pi2[k, :]
+
+            seed_index = [i for i,j in enumerate(Nd_index) if j in self.seed_words[keys[k]] ]
+            other_seed_index = [i for i,j in enumerate(Nd_index) if j in self.seedwords2other_keys[keys[k]] ]
+
+            if len(seed_index) >= 1:
+                temp1[np.array(seed_index)] = alpha
+                temp2[np.array(seed_index)] = beta
+
+            if len(other_seed_index) >= 1:
+                temp1[np.array(other_seed_index)] = beta
+                temp2[np.array(other_seed_index)] = alpha
+
+            # try:
+            #     temp1[np.array(seed_index)] = alpha
+            # except:
+            #     pass
+            # try:
+            #     temp1[np.array(other_seed_index)] = beta
+            # except:
+            #     pass
+            # try:
+            #     temp2[np.array(seed_index)] = beta
+            # except:
+            #     pass
+            # try:
+            #     temp2[np.array(other_seed_index)] = alpha
+            # except:
+            #     pass
+
+            pi1[k,:]=temp1
+            pi2[k,:]=temp2
+
+        return (pi1, pi2)
+
+    def _make_Elognu(self, delta_j, delta_j_prime):
+        """Expectation of log nu for jth
+
+        Parameter
+        ---------
+        delta_j:
+
+        delta_j_prime:
+
+
+        Returns
+        -------
+        Elognu : K*Nd dimensional matrix
+        """
+        return digamma(delta_j) - digamma(delta_j + delta_j_prime)
 
 
 
@@ -153,39 +228,68 @@ class LDA_VI:
         for d in range(self.D):
             Nd_index = np.nonzero(X[d, :])[0]
 
+            # prior
+            pi1, pi2 = self._make_pi_prior(Nd_index, alpha=8, beta=2) # K*Nd
+
+            # initial kappa
+            kappa1 = np.random.uniform(0,1,(self.K, len(Nd_index))) # K*Nd
+            expkappa1 = np.exp(kappa1)
+            kappa2 = 1-kappa1 # K*Nd
+
+            # initial delta
+            delta1 = pi1 + kappa1 # K*Nd
+            delta2 = pi2 + kappa2 # K*Nd
+            Elognu1 = self._make_Elognu(delta1, delta2)
+            Elognu2 = self._make_Elognu(delta2, delta1)
+            expElognu1 = np.exp(Elognu1)
+            expElognu2 = np.exp(Elognu2)
+
             cnts = X[d, Nd_index] # 1*Nd
             gammad = gamma[d, :] # 1*K
             Elogthetad = Elogtheta[d, :] # 1*K
+            Elogbetad = self.Elogbeta[:,Nd_index] # K*Nd
             expElogthetad = np.exp(Elogthetad) # 1*K
             expElogbetad = self.expElogbeta[:,Nd_index] # K*Nd
 
             # normalizer for phi_{dwk}
             # inner product between 1*K, K*Nd array -> Nd array normalizer
-            phinorm = np.dot(expElogthetad, expElogbetad) + 1e-100
+            phinorm = np.dot(expElogthetad, np.exp(Elogbetad*kappa1)) + 1e-100
 
-            # Iterate gamma, phi until gamma converges
+            # Iterate gamma, phi, kappa, delta until gamma converges
             for it in range(maxIter):
                 lastgamma = gammad
 
+                phi = expElogthetad[:,None] * np.exp(Elogbetad*kappa1) / phinorm[None,:] # K*Nd
+
+                kappa1 = np.exp(phi*Elogbetad) * expElognu1
+                kappa2 = np.exp(phi*Elogbetad) * expElognu2
+                kapnorm = kappa1+kappa2
+
+                kappa1 = kappa1 / kapnorm
+                kappa2 = kappa2 / kapnorm
+
+                delta1 = kappa1 + pi1
+                delta2 = kappa2 + pi2
+
                 # update for gamma_{dk} = alpha + \sum_w n_{dw} phi_{dwk}
-                # here, phi_{dwk} is defined implicitly to save memory
-                # elementwise product between 1*K and
-                # innerproduct(1*Nd, Nd*K) = 1*K
-                # -> 1*K dimension
-                gammad = self.alpha + expElogthetad * \
-                        np.dot(cnts / phinorm, expElogbetad.T)
+                gammad = self.alpha + np.dot(cnts, phi.T)
+
+
+
 
                 # for next iteration, update values
                 Elogthetad = _dirichlet_expectation_1d_(gammad)
                 expElogthetad = np.exp(Elogthetad)
-                phinorm = np.dot(expElogthetad, expElogbetad) + 1e-100
+                phinorm = np.dot(expElogthetad, np.exp(Elogbetad*kappa1)) + 1e-100
+                Elognu1 = self._make_Elognu(delta1, delta2)
+                Elognu2 = self._make_Elognu(delta2, delta1)
+                expElognu1 = np.exp(Elognu1)
+                expElognu2 = np.exp(Elognu2)
 
                 meanchange = np.mean(abs(gammad - lastgamma))
                 if (meanchange < threshold):
 
                     break
-
-
 
             # update dth gamma parameter after convergence
             gamma[d, :] = gammad
@@ -196,16 +300,29 @@ class LDA_VI:
             # by calculating expElogthetad, expElogbetad because of the memory issue
             # Here, we have not finished calculating lambda_{kw}
             # because we have not multiplied expElogbetad which will be done at the end of e-step
-            sstats[:, Nd_index] += np.outer(expElogthetad.T, cnts/phinorm)
+            sstats[:, Nd_index] += phi*kappa1*cnts[None,:]
+
+
+            # calculate contribution of document d to the ELBO in advance
+            if self.iter % self.evaluate_every == 0:
+                score = 0
+                # contribution of phi
+                score += np.sum(cnts[None,:]*phi)
+                # contribution of b
+                score += self._loglikelihood_bernoulli(cnts, kappa1, kappa2, Elognu1, Elognu2)
+                # contribution of nu
+                score += self._loglikelihood_beta(cnts, delta1, delta2, Elognu1, Elognu2)
+            else:
+                score = None
 
 
         # This step finished computing the sufficient statistics for the
         # M step, so that
         # sstats[k,w] = \sum_d n_{dw} * phi_{dwk}
         # = \sum_d n_{dw} * exp{ Elogtheta_{dk} + Elogbeta_{kw} } / phinorm_{dw}
-        sstats = sstats * self.expElogbeta
+        # sstats = sstats * self.expElogbeta
 
-        return gamma, sstats
+        return gamma, sstats, score
 
     def do_e_step(self,X,  maxIter, threshold, random_state, parallel = None):
         """Parallel update for e-step
@@ -233,8 +350,8 @@ class LDA_VI:
         """
 
         # Parallel job is not finished yet!!
-        gamma, sstats = self._e_step(X, maxIter, threshold, random_state)
-        return gamma, sstats
+        gamma, sstats, score = self._e_step(X, maxIter, threshold, random_state)
+        return gamma, sstats, score
 
     def _em_step(self, X, maxIter, threshold, random_state):
 
@@ -262,10 +379,15 @@ class LDA_VI:
 
         """
 
-        gamma, sstats = self.do_e_step(X, maxIter, threshold, random_state)
+        gamma, sstats, score = self.do_e_step(X, maxIter, threshold, random_state)
 
         self.gamma = gamma
         self.components_ = sstats + self.eta
+
+        if self.iter % self.evaluate_every == 0:
+            self.score = score
+        else:
+            pass
 
         # update lambda related variables, expectation and exponential of expectation
         self._update_lam_E_dir()
@@ -330,10 +452,12 @@ class LDA_VI:
                 if abs(ELBO_before - ELBO_after) < threshold:
                     break
 
+            self.iter += 1
+
         print('Done Optimizing!')
 
 
-    def _loglikelihood(self, prior, distr, Edirichlet, size, beta=None):
+    def _loglikelihood(self, prior, distr, Edirichlet, size):
         """Calculate loglikelihood for
         E[log p(theta | alpha) - log q(theta | gamma)]
         E[log p(beta | eta) - log q (beta | lambda)]
@@ -355,12 +479,59 @@ class LDA_VI:
 
         score = np.sum((prior - distr) * Edirichlet)
         score += np.sum(gammaln(distr) - gammaln(prior))
-        if self.confirmatory and beta:
-            score += np.sum(gammaln(np.sum(prior,1)) - gammaln(np.sum(distr, 1)))
-        else:
-            score += np.sum(gammaln(prior*size) - gammaln(np.sum(distr, 1)))
+        score += np.sum(gammaln(prior*size) - gammaln(np.sum(distr, 1)))
         return score
 
+    def _loglikelihood_bernoulli(self, cnts, kappa1, kappa2, Elognu1, Elognu2):
+        """Contribution of loglikelihood for dth document:
+        E[log p(b | nu) - log q(b | kappa)]
+
+        Parameter
+        ---------
+        cnts : Nonzero word counts for dth document
+
+        kappa1, kappa2:
+
+        Elognu1, Elognu2:
+
+        Returns
+        -------
+        score : float
+        """
+
+        mat = kappa1 * (Elognu1 - np.log(kappa1)) + kappa2 * (Elognu2 - np.log(kappa2)) # K*Nd
+        mat = cnts[None,:]*mat
+
+        return np.sum(mat)
+
+    def _loglikelihood_beta(self, cnts, delta1, delta2, Elognu1, Elognu2):
+        """Contribution of loglikelihood for dth document:
+        E[log p(nu | pi) - log q(nu | delta)]
+
+        Parameter
+        ---------
+        cnts : Nonzero word counts for dth document
+
+        delta1, delta2:
+
+        Elognu1, Elognu2:
+
+        Returns
+        -------
+        score : float
+        """
+
+        def _coefficient_beta(delta1, delta2):
+            denom = gamma(delta1) * gamma(delta2)
+            numer = gamma(delta1 + delta2)
+            return np.log(numer / denom)
+
+        coef = _coefficient_beta(delta1, delta2) # K*Nd
+
+        mat = coef * ( (delta1 - 1) * Elognu1 + (delta2 - 1) * Elognu2 )
+        mat = cnts[None,:]*mat
+
+        return np.sum(mat)
 
     def _approx_bound(self, X):
         """Estimate the variational bound, ELBO.
@@ -387,29 +558,25 @@ class LDA_VI:
         alpha = self.alpha
         eta = self.eta
 
-        ELBO = 0
+        ELBO = self.score
 
-        # E[log p(docs | theta, beta)]
-        for d in range(self.D):
-            Nd_index = np.nonzero(X[d, :])[0]
-            cnts = X[d, Nd_index]  # 1*Nd
-
-            temp = (Elogtheta[d, :, np.newaxis]
-                    + Elogbeta[:, Nd_index])
-            norm_phi = logsumexp(temp, axis=0)
-            ELBO += np.dot(cnts, norm_phi)
+        # # E[log p(docs | theta, beta)]
+        # for d in range(self.D):
+        #     Nd_index = np.nonzero(X[d, :])[0]
+        #     cnts = X[d, Nd_index]  # 1*Nd
+        #
+        #     temp = (Elogtheta[d, :, np.newaxis]
+        #             + Elogbeta[:, Nd_index])
+        #     norm_phi = logsumexp(temp, axis=0)
+        #     ELBO += np.dot(cnts, norm_phi)
 
         # compute E[log p(theta | alpha) - log q(theta | gamma)]
         ELBO += self._loglikelihood(alpha, gamma,
                                 Elogtheta, self.K)
 
         # E[log p(beta | eta) - log q (beta | lambda)]
-        if self.confirmatory:
-            ELBO += self._loglikelihood(eta, self.components_,
-                                    Elogbeta, self.V, beta=True)
-        else:
-            ELBO += self._loglikelihood(eta, self.components_,
-                                        Elogbeta, self.V, beta=True)
+        ELBO += self._loglikelihood(eta, self.components_,
+                                Elogbeta, self.V)
 
         return ELBO
 
