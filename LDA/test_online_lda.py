@@ -1,7 +1,6 @@
 import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from online_lda import LDA_VI
-from online_lda import LDA_VI
 
 
 # #run my LDA model
