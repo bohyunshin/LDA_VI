@@ -10,7 +10,7 @@ hotel = pickle.load(open(dir_, 'rb'))
 # for ordinary lda
 alpha = 5
 eta = 0.1
-K = 10
+K = 4
 maxIter = 1000
 maxIterDoc =100
 threshold = 0.01
