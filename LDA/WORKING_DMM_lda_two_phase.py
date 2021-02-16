@@ -11,7 +11,7 @@ EPS = np.finfo(np.float).eps
 
 class LDA_VI:
     def __init__(self, alpha, eta, K, eta_seed=None, eta_not_seed=None, seed_words=None,
-                 confirmatory=None, evaluate_every=10, two_phase_words=None):
+                 confirmatory=None, evaluate_every=10):
         # loading data
         # self.data = pickle.load(open(path_data, 'rb'))
         # np.random.seed(0)
@@ -29,11 +29,10 @@ class LDA_VI:
         self.evaluate_every = evaluate_every
         self.confirmatory = confirmatory
         self.perplexity = []
-        self.two_phase_words = two_phase_words
 
-        # if self.confirmatory:
-        #     if self.K != len(self.seed_words.keys()):
-        #         raise ValueError('Input number of topics does not match number of topics in seed words')
+        if self.confirmatory:
+            if self.K != len(self.seed_words.keys()):
+                raise ValueError('Input number of topics does not match number of topics in seed words')
 
     def _make_vocab(self):
         self.vocab = []
@@ -83,7 +82,7 @@ class LDA_VI:
             # make asseymmetric prior for word-topic distribution
             # different by each topic
             self.eta = self.eta_ordinary * np.ones((self.K, self.V))
-            for k in range(self.K-1):
+            for k in range(self.K):
                 setdiff_index = np.array(list(set(range(self.K)) - set([k])))
                 key = list(self.seed_words.keys())[k]
                 not_key = [key for i, key in enumerate(list(self.seed_words.keys())) if i in setdiff_index]
@@ -91,13 +90,6 @@ class LDA_VI:
 
                 for kk in not_key:
                     self.eta[k, np.array(self.seed_words[kk])] = self.eta_not_seed
-
-        self.two_phase_words_idx = [self.w2idx[w] for w in self.two_phase_words]
-        self.eta[self.K-1, np.array(self.two_phase_words_idx)] = self.eta_not_seed
-        for key in self.seed_words.keys():
-            self.eta[self.K-1, np.array(self.seed_words[key])] = self.eta_not_seed
-        for k in range(self.K-1):
-            self.eta[k, np.array(self.two_phase_words_idx)] = self.eta_not_seed
 
         # initialize variational parameters for q(beta) ~ Dir(lambda)
         np.random.seed(1)

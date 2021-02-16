@@ -28,10 +28,10 @@ seed_words['service'] = ["staff", "helpful", "service", "friendly", "pool", "des
 
 seed_words['food'] = ['food', 'coffee','water','beverage','beverages','breakfast','luanch','dinner','tea',
                            'fruit','fruits','starbucks','cafe','cafes','coconut','restaurant', 'restaurants', 'starbucks','drink']
-seed_words['accomodation'] = ['rooms','room','bathrooms','bathroom','lobby','hotel','stay','elevator','towel','balcony'
+seed_words['accomodation'] = ['bathrooms','bathroom','lobby','elevator','towel','balcony',
                                     'location','far','close','front','stay']
 
-K = len(seed_words.keys())
+K = len(seed_words.keys())+1
 
 data = pickle.load(open(dir_, 'rb'))
 data_join = [' '.join(doc) for doc in data]
@@ -40,8 +40,9 @@ X = cv.fit_transform(data_join).toarray()
 
 lda = LDA_VI(alpha=alpha,eta_seed=eta_seed, eta=0.1,
              eta_not_seed=eta_not_seed, K=K,
-             seed_words=seed_words, confirmatory=True)
+             seed_words=seed_words, confirmatory=True,
+             two_phase_words=['hotel','room', 'rooms', 'stay'])
 lda.train(X, cv, maxIter, maxIterDoc, threshold, random_state)
 
-save_dir = '../../model_lda/CDMM_result.pkl'
+save_dir = '../../model_lda/CDMM_two_phase_result.pkl'
 pickle.dump(lda, open(save_dir, 'wb'))
