@@ -369,9 +369,20 @@ class LDA_VI:
         self.delta_1 = self.kappa_1 + self.pi1
         self.delta_2 = self.kappa_2 + self.pi2
 
+        def normalize(arr1, arr2):
+            K,V = arr1.shape
+            for k in range(K):
+                for v in range(V):
+                    min_val = min(arr1[k,v], arr2[k,v])
+                    arr1[k,v] -= min_val
+                    arr2[k,v] -= min_val
+            return arr1, arr2
+        self.kappa_1, self.kappa_2 = normalize(sstats_kappa + self.Elognu_1, sstats_kappa + self.Elognu_2)
+        self.kappa_1, self.kappa_2 = np.exp(self.kappa_1), np.exp(self.kappa_2)
+
         # finish calculating kappa
-        self.kappa_1 = np.exp(sstats_kappa + self.Elognu_1)
-        self.kappa_2 = np.exp(sstats_kappa + self.Elognu_2)
+        # self.kappa_1 = np.exp(sstats_kappa + self.Elognu_1)
+        # self.kappa_2 = np.exp(sstats_kappa + self.Elognu_2)
         kapnorm = self.kappa_1 + self.kappa_2 + EPS
         self.kappa_1 = self.kappa_1 / kapnorm
         self.kappa_2 = self.kappa_2 / kapnorm
