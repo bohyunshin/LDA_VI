@@ -22,5 +22,5 @@ X = cv.fit_transform(data_join).toarray()
 lda = LDA_VI(alpha=alpha,eta=eta,K=K)
 lda.train(X, cv, maxIter, maxIterDoc, threshold, random_state)
 
-save_dir = '../../model_lda/LDA_PAPER_result.pkl'
+save_dir = '../../model_lda/LDA_PAPER_result_2.pkl'
 pickle.dump(lda, open(save_dir, 'wb'))

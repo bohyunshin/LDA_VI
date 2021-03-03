@@ -377,12 +377,12 @@ class LDA_VI:
                     arr1[k,v] -= min_val
                     arr2[k,v] -= min_val
             return arr1, arr2
-        self.kappa_1, self.kappa_2 = normalize(sstats_kappa + self.Elognu_1, sstats_kappa + self.Elognu_2)
-        self.kappa_1, self.kappa_2 = np.exp(self.kappa_1), np.exp(self.kappa_2)
+        # self.kappa_1, self.kappa_2 = normalize(sstats_kappa + self.Elognu_1, self.Elognu_2)
+        # self.kappa_1, self.kappa_2 = np.exp(self.kappa_1), np.exp(self.kappa_2)
 
         # finish calculating kappa
-        # self.kappa_1 = np.exp(sstats_kappa + self.Elognu_1)
-        # self.kappa_2 = np.exp(sstats_kappa + self.Elognu_2)
+        self.kappa_1 = np.exp(sstats_kappa + self.Elognu_1)
+        self.kappa_2 = np.exp(self.Elognu_2)
         kapnorm = self.kappa_1 + self.kappa_2 + EPS
         self.kappa_1 = self.kappa_1 / kapnorm
         self.kappa_2 = self.kappa_2 / kapnorm
