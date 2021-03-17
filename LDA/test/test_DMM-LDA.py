@@ -26,6 +26,8 @@ data_join = [' '.join(doc) for doc in data]
 cv = CountVectorizer()
 X = cv.fit_transform(data_join).toarray()
 
+cv.get_feature_names()
+
 
 lda = LDA_VI(alpha=alpha,eta=0.1,K=K)
 lda.train(X, cv, maxIter, maxIterDoc, threshold, random_state)

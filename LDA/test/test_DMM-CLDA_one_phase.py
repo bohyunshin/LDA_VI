@@ -27,7 +27,7 @@ seed_words['service'] = ["staff", "helpful", "service", "friendly", "pool", "des
                               "weclome", "serviced", "service", "help", "courteous", "check", "towels",
                               "solved", "solve", "offers", 'serve']
 
-seed_words['food'] = ['food', 'coffee','water','beverage','beverages','breakfast','luanch','dinner','tea',
+seed_words['food'] = ['food', 'coffee','water','beverage','beverages','breakfast','lunch','dinner','tea',
                            'fruit','fruits','starbucks','cafe','cafes','coconut','restaurant', 'restaurants', 'starbucks','drink']
 seed_words['accomodation'] = ['bathrooms','bathroom','lobby','elevator','towel','balcony',
                                     'location','far','close','front','stay']
