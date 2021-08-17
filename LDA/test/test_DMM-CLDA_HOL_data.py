@@ -2,10 +2,11 @@ import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from WORKING_LDA.WORKING_DMM_lda import LDA_VI
 
-# #run my LDA model
-# dir_ = "/Users/shinbo/Desktop/metting/LDA/0. data/20news-bydate/newsgroup_preprocessed_corpus.pickle"
+#run my LDA model
 type = 'first_data'
-dir_ = f'/Users/shinbo/Desktop/metting/LDA/0. data/hotel data/preproc/{type}_preproc.pkl'
+# dir_ = f'/Users/shinbo/Desktop/metting/LDA/0. data/hotel data/preproc/{type}_preproc.pkl'
+# for holulu data
+dir_ = '/Users/shinbo/Desktop/metting/LDA/0. data/JH_data/JH_data_cleaned.pkl'
 hotel = pickle.load(open(dir_, 'rb'))
 
 # for ordinary lda
@@ -34,7 +35,7 @@ seed_words['accomodation'] = ['bathrooms','bathroom','lobby','elevator','towel',
 
 K = len(seed_words.keys())
 data = pickle.load(open(dir_, 'rb'))
-stop_words = ['hotel','stay','room','waikiki']
+stop_words = ['good','great','go','get','place']
 for i in range(len(data)):
     data[i] = [w for w in data[i] if w not in stop_words]
 
@@ -47,5 +48,6 @@ lda = LDA_VI(alpha=alpha,eta_seed=eta_seed, eta=0.1,
              seed_words=seed_words, confirmatory=True)
 lda.train(X, cv, maxIter, maxIterDoc, threshold, random_state)
 
-save_dir = f'../../../model_lda/{type}/CDMM_result_{type}_800_stop_words.pkl'
+# save_dir = f'../../../model_lda/{type}/CDMM_result_{type}_800_stop_words.pkl'
+save_dir = f'../../../model_lda/HOL/CDMM_result_800_stop_words_holulu.pkl'
 pickle.dump(lda, open(save_dir, 'wb'))
